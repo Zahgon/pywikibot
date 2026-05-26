@@ -42,9 +42,7 @@ def get_toolforge_hostname() -> str | None:
     :return: The hostname of the currently running host,
              if it is in Wikimedia Toolforge; otherwise return None.
     """
-    if socket.getfqdn().endswith('.tools.eqiad1.wikimedia.cloud'):
-        return socket.gethostname()
-    return None
+    pass
 
 
 def getversion(online: bool = True) -> str:
@@ -134,48 +132,7 @@ def getversion_git(path=None):
         - hash (git hash for the current revision)
     :rtype: ``tuple`` of three ``str`` and a ``time.struct_time``
     """
-    _program_dir = path or _get_program_dir()
-    cmd = 'git'
-    try:
-        subprocess.Popen([cmd], stdout=subprocess.PIPE).communicate()
-    except OSError:
-        # some Windows git versions provide git.cmd instead of git.exe
-        cmd = 'git.cmd'
-
-    with open(os.path.join(_program_dir, '.git/config')) as f:
-        tag = f.read()
-    # Try 'origin' and then 'gerrit' as remote name; bail if can't find either.
-    remote_pos = tag.find('[remote "origin"]')
-    if remote_pos == -1:
-        remote_pos = tag.find('[remote "gerrit"]')
-    if remote_pos == -1:
-        tag = '?'
-    else:
-        s = tag.find('url = ', remote_pos)
-        e = tag.find('\n', s)
-        tag = tag[(s + 6):e]
-        t = tag.strip().split('/')
-        tag = f"[{t[0][:-1]}] {'-'.join(t[3:])}"
-    dp = subprocess.Popen([cmd, '--no-pager',
-                           'log', '-1',
-                           '--pretty=format:"%ad|%an|%h|%H|%d"',
-                           '--abbrev-commit',
-                           '--date=iso'],
-                          cwd=_program_dir,
-                          stdout=subprocess.PIPE)
-    info, _ = dp.communicate()
-    info = info.decode(config.console_encoding).split('|')
-    date = info[0][:-6]
-    date = time.strptime(date.strip('"'), '%Y-%m-%d %H:%M:%S')
-    dp = subprocess.Popen([cmd, 'rev-list', 'HEAD'],
-                          cwd=_program_dir,
-                          stdout=subprocess.PIPE)
-    rev, stderr = dp.communicate()
-    rev = f'g{len(rev.splitlines())}'
-    hsh = info[3]  # also stored in '.git/refs/heads/master'
-    if (not date or not tag or not rev) and not path:
-        raise VersionParseError
-    return (tag, rev, date, hsh)
+    pass
 
 
 def getversion_nightly(path: str | Path | None = None):
@@ -193,19 +150,7 @@ def getversion_nightly(path: str | Path | None = None):
         - hash (git hash for the current revision)
     :rtype: ``tuple`` of three ``str`` and a ``time.struct_time``
     """
-    folder = Path(path or _get_program_dir())
-    file = folder / 'version'
-    if not file.exists():
-        file = folder / 'pywikibot' / 'version'
-
-    with file.open() as data:
-        (tag, rev, date, hsh) = data.read().splitlines()
-
-    date = time.strptime(date[:19], '%Y-%m-%dT%H:%M:%S')
-
-    if not date or not tag or not rev:
-        raise VersionParseError  # pragma: no cover
-    return (tag, rev, date, hsh)
+    pass
 
 
 def getversion_package(path=None) -> tuple[str, str, str, str]:
@@ -219,13 +164,7 @@ def getversion_package(path=None) -> tuple[str, str, str, str]:
         - date (date the package was installed locally),
         - hash (git hash for the current revision of 'pywikibot/__init__.py')
     """
-    hsh = ''
-    date = get_module_mtime(pywikibot).timetuple()
-
-    tag = 'pywikibot/__init__.py'
-    rev = '-1 (unknown)'
-
-    return (tag, rev, date, hsh)
+    pass
 
 
 def getversion_onlinerepo(path: str = 'branches/master') -> str:

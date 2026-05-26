@@ -214,46 +214,29 @@ class XmlDump:
 
         .. version-added:: 9.0
         """
-        raw_revs = self._fetch_revs(elem)
-        try:
-            raw_rev = next(raw_revs)
-            yield self._create_revision(raw_rev.headers, raw_rev.revision)
-        except StopIteration:
-            return
+        pass
 
     def _parse_only_latest(self, elem: Element) -> Iterator[XmlEntry]:
         """Parser that yields only the latest revision."""
-        raw_revs = self._fetch_revs(elem, with_id=True)
-        raw_rev = max(raw_revs, default=None, key=lambda rev: rev.revid)
-        if raw_rev is not None:
-            yield self._create_revision(raw_rev.headers, raw_rev.revision)
+        pass
 
     def _parse_only_earliest(self, elem: Element) -> Iterator[XmlEntry]:
         """Parser that yields only the earliest revision.
 
         .. version-added:: 9.0
         """
-        raw_revs = self._fetch_revs(elem, with_id=True)
-        raw_rev = min(raw_revs, default=None, key=lambda rev: rev.revid)
-        if raw_rev is not None:
-            yield self._create_revision(raw_rev.headers, raw_rev.revision)
+        pass
 
     def _parse_all(self, elem: Element) -> Iterator[XmlEntry]:
         """Parser that yields all revisions."""
-        raw_revs = self._fetch_revs(elem)
-        for raw_rev in raw_revs:
-            yield self._create_revision(raw_rev.headers, raw_rev.revision)
+        pass
 
     def _fetch_revs(self, elem: Element, with_id=False) -> Iterator[RawRev]:
         """Yield all revisions in a page.
 
         .. version-added:: 9.0
         """
-        uri = self.uri
-        headers = self._headers(elem)
-        for revision in elem.findall(f'{uri}revision'):
-            revid = int(revision.findtext(f'{uri}id')) if with_id else 0
-            yield RawRev(headers, revision, revid)
+        pass
 
     @staticmethod
     def parse_restrictions(restrictions: str) -> tuple[str | None, str | None]:
@@ -265,66 +248,17 @@ class XmlDump:
         .. version-added:: 9.0
            replaces deprecated ``parseRestrictions`` function.
         """
-        if not restrictions:
-            return None, None
-
-        edit_restriction, move_restriction = None, None
-
-        edit_lock_match = re.search('edit=([^:]*)', restrictions)
-        if edit_lock_match:
-            edit_restriction = edit_lock_match[1]
-
-        move_lock_match = re.search('move=([^:]*)', restrictions)
-        if move_lock_match:
-            move_restriction = move_lock_match[1]
-
-        if restrictions == 'sysop':
-            edit_restriction = 'sysop'
-            move_restriction = 'sysop'
-
-        return edit_restriction, move_restriction
+        pass
 
     def _headers(self, elem: Element) -> Headers:
         """Extract headers from XML chunk."""
-        uri = self.uri
-        edit_restriction, move_restriction = self.parse_restrictions(
-            elem.findtext(f'{uri}restrictions')
-        )
-
-        return Headers(
-            title=elem.findtext(f'{uri}title'),
-            ns=elem.findtext(f'{uri}ns'),
-            pageid=elem.findtext(f'{uri}id'),
-            isredirect=elem.findtext(f'{uri}redirect') is not None,
-            edit_restriction=edit_restriction,
-            move_restriction=move_restriction,
-        )
+        pass
 
     def _create_revision(
             self, headers: Headers, revision: Element
     ) -> XmlEntry:
         """Create a Single revision."""
-        uri = self.uri
-        contributor = revision.find(f'{uri}contributor')
-        ip_editor = contributor.findtext(f'{uri}ip')
-        username = ip_editor or contributor.findtext(f'{uri}username')
-        username = username or ''  # username might be deleted
-
-        return XmlEntry(
-            title=headers.title,
-            ns=headers.ns,
-            id=headers.pageid,
-            editRestriction=headers.edit_restriction,
-            moveRestriction=headers.move_restriction,
-            isredirect=headers.isredirect,
-            text=revision.findtext(f'{uri}text'),
-            username=username,
-            ipedit=bool(ip_editor),
-            timestamp=revision.findtext(f'{uri}timestamp'),
-            revisionid=revision.findtext(f'{uri}id'),
-            comment=revision.findtext(f'{uri}comment'),
-            # could get comment, minor as well
-        )
+        pass
 
 
 wrapper = ModuleDeprecationWrapper(__name__)

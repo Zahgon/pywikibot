@@ -376,14 +376,14 @@ class UploadRobot(BaseBot):
 
     def abort_on_warn(self, warn_code):
         """Determine if the warning message should cause an abort."""
-        return self.aborts is True or warn_code in self.aborts
+        pass
 
     def ignore_on_warn(self, warn_code: str):
         """Determine if the warning message should be ignored.
 
         :param warn_code: The warning message
         """
-        return self.ignore_warning is True or warn_code in self.ignore_warning
+        pass
 
     def upload_file(self, file_url: str) -> str | None:
         """Upload the image at file_url to the target wiki.

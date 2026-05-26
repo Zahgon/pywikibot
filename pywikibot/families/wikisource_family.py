@@ -52,32 +52,11 @@ class Family(family.SubdomainFamily, family.WikimediaFamily):
 
     # All requests to 'mul.wikisource.org/*' are redirected to
     # the main page, so using 'wikisource.org'
-    @classproperty
-    def langs(cls):
-        cls.langs = super().langs
-        cls.langs['mul'] = cls.domain
-        cls.langs['beta'] = 'en.wikisource.beta.wmcloud.org'
-        return cls.langs
 
     # Need to explicitly inject the beta domain
-    @classproperty
-    def domains(cls):
-        cls.domains = super().domains
-        cls.domains.append(cls.langs['beta'])
-        return cls.domains
 
     # All requests to unknown languages are also redirected to
     # the main page, so using mul alias, see T114574 and T241413
-    @classproperty
-    def code_aliases(cls):
-        cls.code_aliases = super().code_aliases.copy()
-        aliases = cls.known_codes + ['-', 'www']
-        for code in aliases:
-            if (code not in cls.codes
-                    and code not in cls.closed_wikis
-                    and code not in cls.code_aliases):
-                cls.code_aliases[code] = 'mul'
-        return cls.code_aliases
 
     # Global bot allowed languages on
     # https://meta.wikimedia.org/wiki/BPI#Current_implementation

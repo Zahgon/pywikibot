@@ -131,8 +131,7 @@ class SizedKeyCollection(Collection):
 
     def filter(self, key):
         """Iterate over items for a given key."""
-        with suppress(KeyError):
-            yield from self.data[key]
+        pass
 
     def iter_values_len(self):
         """Yield key, len(values) pairs."""
@@ -300,33 +299,11 @@ class GeneratorWrapper(ABC, Generator):
         :raises RuntimeError: No generator started
         :raises TypeError: Invalid type for *typ* argument
         """
-        if not hasattr(self, '_started_gen'):
-            raise RuntimeError('No generator was started')
-
-        # New-style (single exception instance) with keyword argument
-        if typ is None and traceback is None and isinstance(value,
-                                                            BaseException):
-            self._started_gen.throw(value)
-            return
-
-        if value is not None or traceback is not None:
-            # Old-style (type, value, traceback) signature
-            issue_deprecation_warning(
-                'The (type, value, traceback) signature of throw()',
-                'the single-arg signature',
-                warning_class=ArgumentDeprecationWarning,
-                since='10.7.0'
-            )
-            self._started_gen.throw(typ, value, traceback)
-            return
-
-        # New-style (single exception instance)
-        self._started_gen.throw(typ)
+        pass
 
     def restart(self) -> None:
         """Restart the generator."""
-        with suppress(AttributeError):
-            del self._started_gen
+        pass
 
 
 class RateLimit(NamedTuple):
@@ -374,9 +351,9 @@ class RateLimit(NamedTuple):
     @property
     def delay(self) -> float:
         """Calculate a delay value which is the inverse of :meth:`ratio`."""
-        return self.seconds / self.hits
+        pass
 
     @property
     def ratio(self) -> float:
         """Calculate a ratio how many hits can be done within one second."""
-        return self.hits / self.seconds if self.seconds != 0 else float('inf')
+        pass

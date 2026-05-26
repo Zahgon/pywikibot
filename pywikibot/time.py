@@ -181,22 +181,7 @@ class Timestamp(datetime.datetime):
 
         .. version-added:: 7.5
         """
-        RE_POSIX = r'(?P<S>-?\d{1,13})(?:\.(?P<u>\d{1,6}))?'  # noqa: N806
-        m = re.fullmatch(RE_POSIX, timestr)
-
-        if not m:
-            msg = "time data '{timestr}' does not match POSIX format."
-            raise ValueError(msg.format(timestr=timestr))
-
-        sec = int(m['S'])
-        usec = m['u']
-        usec = int(usec.ljust(6, '0')) if usec else 0
-        if sec < 0 < usec:
-            sec -= 1
-            usec = 1_000_000 - usec
-
-        return cls(1970, 1, 1) + datetime.timedelta(seconds=sec,
-                                                    microseconds=usec)
+        pass
 
     @classmethod
     def _from_string(cls, timestr: str) -> Timestamp:
@@ -219,7 +204,7 @@ class Timestamp(datetime.datetime):
     @classproperty
     def ISO8601Format(cls) -> str:  # noqa: N802
         """ISO8601 format string class property for compatibility purpose."""
-        return cls._ISO8601Format()
+        pass
 
     @classmethod
     def _ISO8601Format(cls, sep: str = 'T') -> str:  # noqa: N802
@@ -321,14 +306,14 @@ class Timestamp(datetime.datetime):
 
         .. version-added:: 7.5
         """
-        return self.replace(tzinfo=datetime.timezone.utc).timestamp()
+        pass
 
     def posix_timestamp_format(self) -> str:
         """Convert object to a POSIX timestamp format.
 
         .. version-added:: 7.5
         """
-        return f'{self.posix_timestamp():.6f}'
+        pass
 
     def __repr__(self) -> str:
         """Unify repr string between CPython and Pypy (T325905).
@@ -437,15 +422,15 @@ class TZoneFixedOffset(datetime.tzinfo):
 
     def utcoffset(self, dt: datetime.datetime | None) -> datetime.timedelta:
         """Return the offset to UTC."""
-        return self._offset
+        pass
 
     def tzname(self, dt: datetime.datetime | None) -> str:
         """Return the name of the timezone."""
-        return self._name
+        pass
 
     def dst(self, dt: datetime.datetime | None) -> datetime.timedelta:
         """Return no daylight savings time."""
-        return datetime.timedelta(0)
+        pass
 
     def __repr__(self) -> str:
         """Return the internal representation of the timezone."""

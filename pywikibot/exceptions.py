@@ -276,7 +276,7 @@ class UploadError(APIError):
     @property
     def message(self) -> str:
         """Return warning message."""
-        return self.info
+        pass
 
 
 class PageRelatedError(Error):
@@ -347,7 +347,7 @@ class OtherPageSaveError(PageSaveRelatedError):
     @property
     def args(self) -> str:  # type: ignore[override]
         """Expose args."""
-        return str(self.reason)
+        pass
 
 
 class NoUsernameError(Error):

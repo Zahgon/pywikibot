@@ -144,9 +144,7 @@ class TextEditor(ScrolledText):
 
     def cut(self, event) -> str:
         """Perform cut operation."""
-        if self.tag_ranges('sel'):
-            self.event_generate('<<Cut>>')
-        return 'break'
+        pass
 
     def copy(self, event) -> str:
         """Perform copy operation."""
@@ -156,46 +154,31 @@ class TextEditor(ScrolledText):
 
     def paste(self, event) -> str:
         """Perform paste operation."""
-        self.event_generate('<<Paste>>')
-        return 'break'
+        pass
 
     def select_all(self, event=None) -> str:
         """Perform select all operation."""
-        self.tag_add('sel', '1.0', 'end-1c')
-        self.mark_set('insert', '1.0')
-        self.see('insert')
-        return 'break'
+        pass
 
     def remove_selection(self, event=None) -> None:
         """Perform remove operation."""
-        self.tag_remove('sel', '1.0', 'end')
-        self.see('insert')
+        pass
 
     def del_word_left(self, event) -> str:
         """Perform delete word (left) operation."""
-        self.event_generate('<Meta-Delete>')
-        return 'break'
+        pass
 
     def del_word_right(self, event=None) -> str:
         """Perform delete word (right) operation."""
-        self.event_generate('<Meta-d>')
-        return 'break'
+        pass
 
     def find_event(self, event=None) -> str:
         """Perform find operation."""
-        if not self.tag_ranges('sel'):
-            found = self.tag_ranges('found')
-            if found:
-                self.tag_add('sel', found[0], found[1])
-            else:
-                self.tag_add('sel', '1.0', '1.0+1c')
-        SearchDialog.find(self)
-        return 'break'
+        pass
 
     def find_again_event(self, event=None) -> str:
         """Perform find again operation."""
-        SearchDialog.find_again(self)
-        return 'break'
+        pass
 
     def find_selection_event(self, event=None) -> str:
         """Perform find selection operation."""
@@ -204,8 +187,7 @@ class TextEditor(ScrolledText):
 
     def replace_event(self, event=None) -> str:
         """Perform replace operation."""
-        ReplaceDialog.replace(self)
-        return 'break'
+        pass
 
     def find_all(self, s):
         """Highlight all occurrences of string s, and select the first one.
@@ -265,16 +247,7 @@ class TextEditor(ScrolledText):
 
     def goto_line_event(self, event) -> str | None:
         """Perform goto line operation."""
-        lineno = simpledialog.askinteger('Goto', 'Go to line number:',
-                                         parent=self)
-        if lineno is None:
-            return 'break'
-        if lineno <= 0:
-            self.bell()
-            return 'break'
-        self.mark_set('insert', f'{lineno}.0')
-        self.see('insert')
-        return None
+        pass
 
 
 class EditBoxWindow(Frame):
@@ -425,7 +398,7 @@ class EditBoxWindow(Frame):
 
     def config_dialog(self, event=None) -> None:
         """Show config dialog."""
-        ConfigDialog(self, 'Settings')
+        pass
 
     def pressedOK(self) -> None:  # noqa: N802
         """Perform OK operation.
@@ -433,8 +406,7 @@ class EditBoxWindow(Frame):
         Called when user pushes the OK button. Saves the buffer into a
         variable, and closes the window.
         """
-        self.text = self.editbox.get('1.0', tkinter.END)
-        self.parent.destroy()
+        pass
 
     def debug(self, event=None) -> str:
         """Call quit() and return 'break'."""
@@ -548,19 +520,15 @@ class Tkdialog:
 
     def ok_file(self) -> None:
         """The user pressed the OK button."""
-        self.filename = self.filename_field.get()
-        self.photo_description = self.description_field.get(0.0, tkinter.END)
-        self.root.destroy()
+        pass
 
     def skip_file(self) -> None:
         """The user pressed the Skip button."""
-        self.skip = True
-        self.root.destroy()
+        pass
 
     def show_dialog(self) -> tuple[str, str, bool]:
         """Activate the dialog.
 
         :return: New description, name, and if the image is skipped
         """
-        self.root.mainloop()
-        return self.photo_description, self.filename, self.skip
+        pass

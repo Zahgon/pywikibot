@@ -100,7 +100,7 @@ class LogEntry(UserDict):
         .. version-added:: 9.4
            private *_param* attribute became a public property
         """
-        return self.get('params', {})
+        pass
 
     @cached
     def page(self) -> int | pywikibot.page.Page:
@@ -179,10 +179,7 @@ class BlockEntry(LogEntry):
 
         :return: List of flags strings
         """
-        if self.action() == 'unblock':
-            return []
-
-        return self.params.get('flags', [])
+        pass
 
     @cached
     def duration(self) -> datetime.timedelta | None:
@@ -190,15 +187,12 @@ class BlockEntry(LogEntry):
 
         :return: datetime.timedelta, or None if block is indefinite.
         """
-        # Doing the difference is easier than parsing the string
-        return (self.expiry() - self.timestamp()
-                if self.expiry() is not None else None)
+        pass
 
     @cached
     def expiry(self) -> pywikibot.Timestamp | None:
         """Return a Timestamp representing the block expiry date."""
-        details = self.params.get('expiry')
-        return pywikibot.Timestamp.fromISOformat(details) if details else None
+        pass
 
 
 class RightsEntry(LogEntry):
@@ -216,7 +210,7 @@ class RightsEntry(LogEntry):
            LogEntry has no additional data e.g. due to hidden data and
            insufficient rights.
         """
-        return self.params.get('oldgroups', [])
+        pass
 
     @property
     def newgroups(self) -> list[str]:
@@ -227,7 +221,7 @@ class RightsEntry(LogEntry):
            LogEntry has no additional data e.g. due to hidden data and
            insufficient rights.
         """
-        return self.params.get('newgroups', [])
+        pass
 
 
 class UploadEntry(LogEntry):
@@ -251,23 +245,22 @@ class MoveEntry(LogEntry):
     @property
     def target_ns(self) -> pywikibot.site._namespace.Namespace:
         """Return namespace object of target page."""
-        return self.site.namespaces[self.params['target_ns']]
+        pass
 
     @property
     def target_title(self) -> str:
         """Return the target title."""
-        return self.params['target_title']
+        pass
 
     @property
     @cached
     def target_page(self) -> pywikibot.page.Page:
         """Return target page object."""
-        return pywikibot.Page(self.site, self.target_title)
+        pass
 
     def suppressedredirect(self) -> bool:
         """Return True if no redirect was created during the move."""
-        # Introduced in MW r47901
-        return 'suppressedredirect' in self.params
+        pass
 
 
 class PatrolEntry(LogEntry):
@@ -279,17 +272,17 @@ class PatrolEntry(LogEntry):
     @property
     def current_id(self) -> int:
         """Return the current id."""
-        return int(self.params['curid'])
+        pass
 
     @property
     def previous_id(self) -> int:
         """Return the previous id."""
-        return int(self.params['previd'])
+        pass
 
     @property
     def auto(self) -> bool:
         """Return auto patrolled."""
-        return 'auto' in self.params and self.params['auto'] != 0
+        pass
 
 
 class LogEntryFactory:
@@ -377,13 +370,7 @@ class LogEntryFactory:
 
         :param logdata: Log entry data
         """
-        try:
-            logtype = logdata['type']
-        except KeyError:
-            pywikibot.debug(f'API log entry received:\n{logdata}')
-            raise Error("Log entry has no 'type' key")
-
-        return LogEntryFactory.get_entry_class(logtype)(logdata, self._site)
+        pass
 
 
 # For backward compatibility

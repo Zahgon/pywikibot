@@ -70,20 +70,7 @@ class EchoMixin:
             Possible values are ``model``, ``special``, or ``None``.
             The default is ``special``.
         """
-        params = {
-            'action': 'query',
-            'meta': 'notifications',
-            'notformat': 'special',
-        }
-
-        for key, value in kwargs.items():
-            params['not' + key] = value
-
-        data = self.simple_request(**params).submit()
-        notifications = data['query']['notifications']['list']
-
-        return (Notification.fromJSON(self, notification)
-                for notification in notifications)
+        pass
 
     @need_extension('Echo')
     def notifications_mark_read(self: BaseSiteProtocol, **kwargs) -> bool:
@@ -93,14 +80,7 @@ class EchoMixin:
 
         :return: Whether the action was successful
         """
-        kwargs = merge_unique_dicts(kwargs, action='echomarkread',
-                                    token=self.tokens['csrf'])
-        req = self.simple_request(**kwargs)
-        data = req.submit()
-        try:
-            return data['query']['echomarkread']['result'] == 'success'
-        except KeyError:
-            return False
+        pass
 
 
 class ProofreadPageMixin:
@@ -133,47 +113,22 @@ class ProofreadPageMixin:
             self._proofread_page_ns and self._proofread_levels.
         :rtype: Namespace, Namespace, dict
         """
-        if (not hasattr(self, '_proofread_index_ns')
-                or not hasattr(self, '_proofread_page_ns')
-                or not hasattr(self, '_proofread_levels')):
-
-            pirequest = self._request(
-                expiry=pywikibot.config.API_config_expiry
-                if expiry is False else expiry,
-                parameters={'action': 'query', 'meta': 'proofreadinfo'}
-            )
-
-            pidata = pirequest.submit()
-            ns_id = pidata['query']['proofreadnamespaces']['index']['id']
-            self._proofread_index_ns = self.namespaces[ns_id]
-
-            ns_id = pidata['query']['proofreadnamespaces']['page']['id']
-            self._proofread_page_ns = self.namespaces[ns_id]
-
-            self._proofread_levels = {}
-            for ql in pidata['query']['proofreadqualitylevels']:
-                self._proofread_levels[ql['id']] = ql['category']
+        pass
 
     @property
     def proofread_index_ns(self):
         """Return Index namespace for the ProofreadPage extension."""
-        if not hasattr(self, '_proofread_index_ns'):
-            self._cache_proofreadinfo()
-        return self._proofread_index_ns
+        pass
 
     @property
     def proofread_page_ns(self):
         """Return Page namespace for the ProofreadPage extension."""
-        if not hasattr(self, '_proofread_page_ns'):
-            self._cache_proofreadinfo()
-        return self._proofread_page_ns
+        pass
 
     @property
     def proofread_levels(self):
         """Return Quality Levels for the ProofreadPage extension."""
-        if not hasattr(self, '_proofread_levels'):
-            self._cache_proofreadinfo()
-        return self._proofread_levels
+        pass
 
     @need_extension('ProofreadPage')
     def loadpageurls(self: BaseSiteProtocol,
@@ -187,16 +142,7 @@ class ProofreadPageMixin:
 
         .. seealso:: :api:`imageforpage`
         """
-        title = page.title(with_section=False)
-        # responsiveimages: server would try to render the other images as well
-        # let's not load the server unless needed.
-        prppifpprop = 'filename|size|fullsize'
-
-        query = self._generator(api.PropertyGenerator,
-                                type_arg='imageforpage',
-                                titles=title.encode(self.encoding()),
-                                prppifpprop=prppifpprop)
-        self._update_page(page, query)
+        pass
 
 
 class GeoDataMixin:
@@ -229,12 +175,7 @@ class PageImagesMixin:
         :type page: pywikibot.Page
         :raises APIError: PageImages extension is not installed
         """
-        title = page.title(with_section=False)
-        query = self._generator(api.PropertyGenerator,
-                                type_arg='pageimages',
-                                titles=title.encode(self.encoding()),
-                                piprop=['name'])
-        self._update_page(page, query)
+        pass
 
 
 class GlobalUsageMixin:
@@ -253,37 +194,7 @@ class GlobalUsageMixin:
         :raises pywikibot.exceptions.SiteDefinitionError: Site could not
             be defined for a returned entry in API response.
         """
-        if not isinstance(page, pywikibot.FilePage):
-            raise TypeError(f'Page {page} must be a FilePage.')
-
-        title = page.title(with_section=False)
-        args = {'titles': title,
-                'gufilterlocal': False,
-                }
-        query = self._generator(api.PropertyGenerator,
-                                type_arg='globalusage',
-                                guprop=['url', 'pageid', 'namespace'],
-                                total=total,  # will set gulimit=total in api,
-                                **args)
-
-        for pageitem in query:
-            if not self.sametitle(pageitem['title'],
-                                  page.title(with_section=False)):
-                raise InconsistentTitleError(page, pageitem['title'])
-
-            api.update_page(page, pageitem, query.props)
-
-            assert 'globalusage' in pageitem, \
-                   "API globalusage response lacks 'globalusage' key"
-            for entry in pageitem['globalusage']:
-                try:
-                    gu_site = pywikibot.Site(url=entry['url'])
-                except SiteDefinitionError:
-                    pywikibot.warning('Site could not be defined for global '
-                                      f'usage for {page}: {entry}.')
-                    continue
-                gu_page = pywikibot.Page(gu_site, entry['title'])
-                yield gu_page
+        pass
 
 
 class WikibaseClientMixin:
@@ -360,24 +271,7 @@ class LinterMixin:
         :param lint_from: Lint ID to start querying from
         :return: Pages with Linter errors.
         """
-        query = self._generator(api.ListGenerator, type_arg='linterrors',
-                                total=total, namespaces=namespaces,
-                                lntfrom=lint_from)
-
-        if lint_categories:
-            if isinstance(lint_categories, str):
-                lint_categories = lint_categories.replace(' ', '')
-            query.request['lntcategories'] = lint_categories
-
-        if pageids:
-            if isinstance(pageids, str):
-                pageids = pageids.replace(' ', '')
-            query.request['lntpageid'] = pageids
-
-        for pageitem in query:
-            page = pywikibot.Page(self, pageitem['title'])
-            api.update_page(page, pageitem)
-            yield page
+        pass
 
 
 class ThanksMixin:
@@ -393,13 +287,7 @@ class ThanksMixin:
         :raise APIError: On thanking oneself or other API errors.
         :return: The API response.
         """
-        token = self.tokens['csrf']
-        req = self.simple_request(action='thank', rev=revid, token=token,
-                                  source=source)
-        data = req.submit()
-        if data['result']['success'] != 1:
-            raise APIError('Thanking unsuccessful', '')
-        return data
+        pass
 
 
 class UrlShortenerMixin:
@@ -416,9 +304,7 @@ class UrlShortenerMixin:
         :param url: The link to reduce, with protocol prefix.
         :return: The reduced link, without protocol prefix.
         """
-        req = self.simple_request(action='shortenurl', url=url)
-        data = req.submit()
-        return data['shortenurl']['shorturl']
+        pass
 
 
 class TextExtractsMixin:

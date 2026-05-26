@@ -28,17 +28,12 @@ class Family(family.SubdomainFamily):
     @classproperty
     def domains(cls):
         """List of domains used by Vikidia family."""
-        return [
-            cls.domain,
-            'wikikids.nl'  # nl
-        ]
+        pass
 
     @classproperty
     def langs(cls):
         """Property listing family languages."""
-        cls.langs = super().langs
-        cls.langs['nl'] = cls.domains[1]
-        return cls.langs
+        pass
 
     def scriptpath(self, code):
         """Return the script path for this family."""

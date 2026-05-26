@@ -108,10 +108,7 @@ class FilePage(Page):
 
         :return: Instance of FileInfo()
         """
-        if not self._file_revisions:
-            self.site.loadimageinfo(self, history=True)
-        latest_ts = max(self._file_revisions)
-        return self._file_revisions[latest_ts]
+        pass
 
     @property
     def oldest_file_info(self):
@@ -122,10 +119,7 @@ class FilePage(Page):
 
         :return: Instance of FileInfo()
         """
-        if not self._file_revisions:
-            self.site.loadimageinfo(self, history=True)
-        oldest_ts = min(self._file_revisions)
-        return self._file_revisions[oldest_ts]
+        pass
 
     def get_file_info(self, ts) -> dict:
         """Retrieve and store information of a specific Image rev of FilePage.
@@ -138,8 +132,7 @@ class FilePage(Page):
         :param ts: Timestamp of the Image revision to retrieve
         :return: Instance of FileInfo()
         """
-        self.site.loadimageinfo(self, history=False, timestamp=ts)
-        return self._file_revisions[ts]
+        pass
 
     def get_file_history(self) -> dict:
         """Return the file's version history.
@@ -158,11 +151,7 @@ class FilePage(Page):
         Caches the HTML code, so that if you run this method twice on
         the same FilePage object, the page will only be downloaded once.
         """
-        if not hasattr(self, '_imagePageHtml'):
-            path = (f'{self.site.scriptpath()}/index.php?'
-                    f'title={self.title(as_url=True)}')
-            self._imagePageHtml = http.request(self.site, path).text
-        return self._imagePageHtml
+        pass
 
     def get_file_url(self,
                      url_width: int | None = None,
@@ -283,7 +272,7 @@ class FilePage(Page):
 
         .. version-added:: 7.1
         """
-        return bool(list(self.using_pages(total=1)))
+        pass
 
     def upload(self, source: str, **kwargs) -> bool:
         """Upload this file to the wiki.
@@ -398,44 +387,7 @@ class FilePage(Page):
         :return: True if download is successful, False otherwise.
         :raises IOError: If filename cannot be written for any reason.
         """
-        if not filename:
-            path = Path()
-        elif isinstance(filename, (str, PathLike)):
-            path = Path(filename)
-        else:
-            path = Path(*filename)
-
-        if path.stem in ('', '~', '~user'):
-            path = path / self.title(as_filename=True, with_ns=False)
-
-        thumb = bool(url_width or url_height or url_param)
-        if thumb or revision is None:
-            url = self.get_file_url(url_width, url_height, url_param)
-            revision = self.latest_file_info
-        else:
-            url = revision.url
-
-        # adjust suffix
-        path = path.with_suffix(Path(urlparse(url).path).suffix)
-        # adjust user path
-        path = path.expanduser()
-        # use read throttle per Wikitech robot policy for download (T418672)
-        # multiply minthrottle by 25 to get an functional delay
-        self.site.throttle.set_delays(delay=25 * self.site.throttle.delay)
-        self.site.throttle()
-        self.site.throttle.set_delays()
-
-        req = http.fetch(url, stream=True)
-        if req.status_code == HTTPStatus.OK:
-            with open(path, 'wb') as f:
-                for chunk in req.iter_content(chunk_size):
-                    f.write(chunk)
-
-            return thumb or compute_file_hash(path) == revision.sha1
-
-        pywikibot.warning(
-            f'Unsuccessful request ({req.status_code}): {req.url}')
-        return False
+        pass
 
     def globalusage(self, total=None):
         """Iterate all global usage for this page.
@@ -447,7 +399,7 @@ class FilePage(Page):
             self.site.
         :rtype: generator
         """
-        return self.site.globalusage(self, total=total)
+        pass
 
     def data_item(self):
         """Function to get the associated Wikibase item of the file.
@@ -536,9 +488,7 @@ class FileInfo:
 
         .. version-added:: 8.6
         """
-        if self._metadata is None:
-            self.filepage.get_file_info(self.timestamp)
-        return self._metadata
+        pass
 
     @metadata.setter
     def metadata(self, value) -> None:
@@ -546,4 +496,4 @@ class FileInfo:
 
         .. version-added:: 8.6
         """
-        self._metadata = value
+        pass

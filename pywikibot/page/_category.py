@@ -271,7 +271,7 @@ class Category(Page):
 
     def isHiddenCategory(self) -> bool:  # noqa: N802
         """Return True if the category is hidden."""
-        return 'hiddencat' in self.properties()
+        pass
 
     @property
     def categoryinfo(self) -> dict[str, Any]:
@@ -283,7 +283,7 @@ class Category(Page):
         .. seealso:: :meth:`APISite.categoryinfo()
            <pywikibot.site._apisite.APISite.categoryinfo>`
         """
-        return self.site.categoryinfo(self)
+        pass
 
     def newest_pages(
         self,
@@ -311,49 +311,4 @@ class Category(Page):
                subclass of it if possible. This might change so don't
                expect to only get Page instances.
         """
-        def check_cache(latest):
-            """Return the cached pages in order and not more than total."""
-            cached = []
-            for timestamp in sorted((ts for ts in cache if ts > latest),
-                                    reverse=True):
-                # The complete list can be removed, it'll either yield all of
-                # them, or only a portion but will skip the rest anyway
-                cached += cache.pop(timestamp)[:None if total is None else
-                                               total - len(cached)]
-                if total and len(cached) >= total:
-                    break  # already got enough
-            assert total is None or len(cached) <= total, \
-                'Number of caches is more than total number requested'
-            return cached
-
-        # all pages which have been checked but where created before the
-        # current page was added, at some point they will be created after
-        # the current page was added. It saves all pages via the creation
-        # timestamp. Be prepared for multiple pages.
-        cache = defaultdict(list)
-        # TODO: Make site.categorymembers is usable as it returns pages
-        # There is no total defined, as it's not known how many pages need to
-        # be checked before the total amount of new pages was found. In worst
-        # case all pages of a category need to be checked.
-        for member in pywikibot.data.api.QueryGenerator(
-            site=self.site, parameters={
-                'list': 'categorymembers', 'cmsort': 'timestamp',
-                'cmdir': 'older', 'cmprop': 'timestamp|title',
-                'cmtitle': self.title()}):
-            # TODO: Upcast to suitable class
-            page = pywikibot.Page(self.site, member['title'])
-            assert page.namespace() == member['ns'], \
-                'Namespace of the page is not consistent'
-            cached = check_cache(pywikibot.Timestamp.fromISOformat(
-                member['timestamp']))
-            yield from cached
-            if total is not None:
-                total -= len(cached)
-                if total <= 0:
-                    break
-            cache[page.oldest_revision.timestamp].append(page)
-        else:
-            # clear cache
-            assert total is None or total > 0, \
-                'As many items as given in total already returned'
-            yield from check_cache(pywikibot.Timestamp.min)
+        pass

@@ -51,8 +51,7 @@ class BuiltinNamespace(IntEnum):
 
         .. version-added:: 7.1
         """
-        name = '' if self == 0 else self.name.capitalize().replace('_', ' ')
-        return name.replace('Mediawiki', 'MediaWiki')
+        pass
 
 
 class MetaNamespace(ABCMeta):
@@ -152,7 +151,7 @@ class Namespace(Iterable, ComparableMixin, metaclass=MetaNamespace):
         .. version-changed:: 7.1
            implemented as classproperty using BuiltinNamespace IntEnum.
         """
-        return {item.value: item.canonical for item in BuiltinNamespace}
+        pass
 
     def _distinct(self):
         if self.custom_name == self.canonical_name:
@@ -232,7 +231,7 @@ class Namespace(Iterable, ComparableMixin, metaclass=MetaNamespace):
 
     def custom_prefix(self):
         """Return the custom name with required colons."""
-        return Namespace._colons(self.id, self.custom_name)
+        pass
 
     def __int__(self) -> int:
         """Return the namespace id."""

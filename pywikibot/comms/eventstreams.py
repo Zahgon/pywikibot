@@ -227,14 +227,7 @@ class EventStreams(GeneratorWrapper):
 
         :raises NotImplementedError: No stream types specified
         """
-        if self._streams is None:
-            raise NotImplementedError(
-                f'No streams specified for class {type(self).__name__}')
-        return '{host}{path}/{streams}{since}'.format(
-            host=self._site.eventstreams_host(),
-            path=self._site.eventstreams_path(),
-            streams=self._streams,
-            since=f'?since={self._since}' if self._since else '')
+        pass
 
     def set_maximum_items(self, value: int | None) -> None:
         """Set the maximum number of items to be retrieved from the stream.
@@ -308,14 +301,8 @@ class EventStreams(GeneratorWrapper):
         :type kwargs: str, list, tuple or other sequence
         :raise TypeError: A given args parameter is not a callable.
         """
-        def _is(data, key=None, value=None):
-            return key in data and data[key] is value
 
-        def _eq(data, key=None, value=None):
-            return key in data and data[key] == value
 
-        def _in(data, key=None, value=None):
-            return key in data and data[key] in value
 
         ftype = kwargs.pop('ftype', 'all')  # set default ftype value
 

@@ -97,18 +97,7 @@ class MWSite:
     @property
     def langs(self):
         """Build interwikimap."""
-        response = fetch(
-            self.api
-            + '?action=query&meta=siteinfo&siprop=interwikimap'
-              '&sifilteriw=local&format=json')
-        iw = response.json()
-
-        error = iw.get('error')
-        if error:
-            raise RuntimeError(f"{error['code']} - {error['info']}")
-
-        return [wiki for wiki in iw['query']['interwikimap']
-                if 'language' in wiki]
+        pass
 
     def _fetch_old_version(self) -> None:
         """Extract the version from API help with ?version enabled."""
@@ -184,7 +173,7 @@ class MWSite:
     @property
     def iwpath(self):
         """Get article path URL."""
-        return self.server + self.articlepath
+        pass
 
 
 class WikiHTMLPageParser(HTMLParser):
@@ -203,73 +192,15 @@ class WikiHTMLPageParser(HTMLParser):
 
     def set_version(self, value) -> None:
         """Set highest version."""
-        if self.version and value < self.version:
-            return
-
-        self.version = value
+        pass
 
     def set_api_url(self, url) -> None:
         """Set api_url."""
-        url = url.split('.php', 1)[0]
-        try:
-            value, script_name = url.rsplit('/', 1)
-        except ValueError:
-            return
-
-        if script_name not in ('api', 'load', 'opensearch_desc'):
-            return
-
-        if script_name == 'load':
-            self.set_version(MediaWikiVersion('1.17.0'))
-            if self._parsed_url:
-                # A Resource Loader link is less reliable than other links.
-                # Resource Loader can load resources from a different site.
-                # e.g. http://kino.skripov.com/index.php/$1
-                # loads resources from http://megawiki.net/
-                return
-
-        new_parsed_url = urlparse(value)
-        if self._parsed_url:
-            assert new_parsed_url.path == self._parsed_url.path
-
-        if not new_parsed_url.scheme or not new_parsed_url.netloc:
-            new_parsed_url = urlparse(
-                f'{new_parsed_url.scheme or self.url.scheme}://'
-                f'{new_parsed_url.netloc or self.url.netloc}'
-                f'{new_parsed_url.path}'
-            )
-        elif self._parsed_url:
-            # allow upgrades to https, but not downgrades
-            if self._parsed_url.scheme == 'https' \
-               and new_parsed_url.scheme != self._parsed_url.scheme:
-                return
-
-            # allow http://www.brickwiki.info/ vs http://brickwiki.info/
-            if (new_parsed_url.netloc in self._parsed_url.netloc
-                    or self._parsed_url.netloc in new_parsed_url.netloc):
-                return
-
-            assert new_parsed_url == self._parsed_url, \
-                   f'{self._parsed_url} != {new_parsed_url}'
-
-        self._parsed_url = new_parsed_url
-        self.server = f'{self._parsed_url.scheme}://{self._parsed_url.netloc}'
-        self.scriptpath = self._parsed_url.path
+        pass
 
     def handle_starttag(self, tag, attrs) -> None:
         """Handle an opening tag."""
-        attrs = dict(attrs)
-        if tag == 'meta':
-            if attrs.get('name') == 'generator':
-                self.generator = attrs['content']
-                with suppress(ValueError):
-                    self.version = MediaWikiVersion.from_generator(
-                        self.generator)
-        elif tag == 'link' and 'rel' in attrs and 'href' in attrs:
-            if attrs['rel'] in ('EditURI', 'stylesheet', 'search'):
-                self.set_api_url(attrs['href'])
-        elif tag == 'script' and 'src' in attrs:
-            self.set_api_url(attrs['src'])
+        pass
 
 
 def check_response(response) -> None:

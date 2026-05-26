@@ -154,28 +154,7 @@ class ItemClaimFilter:
         :param page: The page to check
         :return: True if page contains the claim, false otherwise
         """
-        if not isinstance(page, pywikibot.page.WikibasePage):  # T175151
-            try:
-                assert page.site.property_namespace
-                assert page.site.item_namespace
-                key = page.namespace() == page.site.property_namespace
-                page_cls = cls.page_classes[key]
-                page = page_cls(page.site, page.title(with_ns=False))
-            except (AttributeError, AssertionError):
-                try:
-                    page = pywikibot.ItemPage.fromPage(page)
-                except NoPageError:
-                    return False
-
-        def match_qualifiers(page_claim: pywikibot.page.Claim,
-                             qualifiers: dict[str, str]) -> bool:
-            return all(page_claim.has_qualifier(prop, val)
-                       for prop, val in qualifiers.items())
-
-        page_claims = page.get()['claims'].get(prop, [])
-        return any(
-            p_cl.target_equals(claim) and match_qualifiers(p_cl, qualifiers)
-            for p_cl in page_claims)
+        pass
 
     @classmethod
     def filter(
@@ -197,10 +176,7 @@ class ItemClaimFilter:
         :param negate: True if pages that do *not* contain the specified
             claim should be yielded; otherwise False
         """
-        qualifiers = qualifiers or {}
-        for page in generator:
-            if cls.__filter_match(page, prop, claim, qualifiers) is not negate:
-                yield page
+        pass
 
 
 # name the generator methods
@@ -242,28 +218,13 @@ class RegexFilter:
 
         :param quantifier: A qualifier
         """
-        if quantifier == 'all':
-            match = all(r.search(string) for r in regex)
-        else:
-            match = any(r.search(string) for r in regex)
-        return (quantifier == 'none') ^ match
+        pass
 
     @classmethod
     def __precompile(cls, regex: PATTERN_STR_OR_SEQ_TYPE,
                      flag: int) -> list[re.Pattern[str]]:
         """Precompile the regex list if needed."""
-        if isinstance(regex, list):
-            regex_list = regex
-        elif isinstance(regex, tuple):
-            regex_list = list(regex)
-        else:
-            regex_list = [regex]
-
-        for i, item in enumerate(regex_list):
-            if isinstance(item, str):
-                regex_list[i] = re.compile(item, flag)
-
-        return regex_list
+        pass
 
     @classmethod
     def titlefilter(cls,
@@ -290,16 +251,7 @@ class RegexFilter:
         :param ignore_namespace: Ignore the namespace when matching the title
         :return: Return a page depending on the matching parameters
         """
-        # for backwards compatibility with compat for inverse parameter
-        if quantifier is False:
-            quantifier = 'any'
-        elif quantifier is True:
-            quantifier = 'none'
-        reg = cls.__precompile(regex, re.IGNORECASE)
-        for page in generator:
-            title = page.title(with_ns=not ignore_namespace)
-            if cls.__filter_match(reg, title, quantifier):
-                yield page
+        pass
 
     @classmethod
     def contentfilter(cls,
@@ -314,9 +266,7 @@ class RegexFilter:
 
         For parameters see titlefilter above.
         """
-        reg = cls.__precompile(regex, re.IGNORECASE | re.DOTALL)
-        return (page for page in generator
-                if cls.__filter_match(reg, page.text, quantifier))
+        pass
 
 
 def QualityFilterPageGenerator(

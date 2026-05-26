@@ -30,27 +30,17 @@ class Family(family.FandomFamily):
     @classproperty
     def langs(cls):
         """Property listing family languages."""
-        cls.langs = super().langs
-        # override deviations
-        for i, lang in enumerate(['en', 'es', 'et', 'uk'], start=1):
-            cls.langs[lang] = cls.domains[i]
-        return cls.langs
+        pass
 
     @classproperty
     def disambiguationTemplates(cls):  # noqa: N802
         """Property listing disambiguation templates."""
-        cls.disambiguationTemplates = super().disambiguationTemplates
-        cls.disambiguationTemplates['en'] = ['disambig', 'disambig/quest',
-                                             'disambig/quest2',
-                                             'disambig/achievement2']
-        return cls.disambiguationTemplates
+        pass
 
     @classproperty
     def disambcatname(cls):
         """Property listing disambiguation category name."""
-        cls.disambcatname = super().disambcatname
-        cls.disambcatname['en'] = 'Disambiguations'
-        return cls.disambcatname
+        pass
 
     # Wikia's default SelectCategory extension always puts categories last
     @classproperty
@@ -62,16 +52,12 @@ class Family(family.FandomFamily):
            use :meth:`site.has_extension('CategorySelect')
            <pywikibot.site._apisite.APISite.has_extension>` instead
         """
-        return cls.langs.keys()
+        pass
 
     @classproperty
     def domains(cls):
         """List of domains used by family wowwiki."""
-        return [cls.domain,
-                'wowwiki-archive.fandom.com',  # en
-                'wow.gamepedia.com',  # es
-                'worldofwarcraft.fandom.com',  # et
-                'warcraft.fandom.com']  # uk
+        pass
 
     def scriptpath(self, code):
         """Return the script path for this family."""

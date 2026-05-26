@@ -412,7 +412,7 @@ class Request(MutableMapping, WaitingMixin):
         .. version-deprecated:: 9.0
            Use ``items()`` instead.
         """
-        return iter(self.items())
+        pass
 
     def _add_defaults(self) -> None:
         """Add default parameters to the API request.

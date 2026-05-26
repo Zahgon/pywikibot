@@ -267,12 +267,7 @@ class BoundedPoolExecutor(futures.Executor):
 
     def _bound(self, sep: str = '') -> str:
         """Helper method for str and repr."""
-        if not hasattr(self, '_bound_semaphore'):
-            # class is not fully initialized
-            return ''
-
-        bound = self._bound_semaphore._initial_value
-        return '' if bound == self._max_workers else f'{sep}{bound}'
+        pass
 
     def __str__(self) -> str:
         """String of current BoundedPoolExecutor type.

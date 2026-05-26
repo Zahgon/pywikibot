@@ -45,20 +45,4 @@ class CitoidClient:
         :param ref_url: The URL to get the citation for.
         :return: A dictionary with the citation data.
         """
-        if response_format not in VALID_FORMAT:
-            raise ValueError(f'Invalid format {response_format}, '
-                             f'must be one of {VALID_FORMAT}')
-        if (not hasattr(self.site.family, 'citoid_endpoint')
-                or not self.site.family.citoid_endpoint):
-            raise ApiNotAvailableError(
-                f'Citoid endpoint not configured for {self.site.family.name}')
-        base_url = self.site.family.citoid_endpoint
-        ref_url = urllib.parse.quote(ref_url, safe='')
-        api_url = urllib.parse.urljoin(base_url,
-                                       f'{response_format}/{ref_url}')
-        try:
-            json = http.request(self.site, api_url).json()
-            return json
-        except Error as e:
-            pywikibot.log(f'Caught pywikibot error {e}')
-            raise
+        pass

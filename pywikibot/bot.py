@@ -323,9 +323,7 @@ def handler_namer(name: str) -> str:
 
     .. version-added:: 6.5
     """
-    path, qualifier = name.rsplit('.', 1)
-    root, ext = os.path.splitext(path)
-    return f'{root}.{qualifier}{ext}'
+    pass
 
 
 def init_handlers() -> None:
@@ -542,11 +540,7 @@ def initialize_handlers(function):
 
     .. version-added:: 7.0
     """
-    @wraps(function)
-    def wrapper(*args, **kwargs):
-        init_handlers()
-        return function(*args, **kwargs)
-    return wrapper
+    pass
 
 
 @initialize_handlers
@@ -1221,8 +1215,7 @@ class BaseBot(OptionHandler):
     @property
     def current_page(self) -> pywikibot.page.BasePage:
         """Return the current working page as a property."""
-        assert self._current_page is not None
-        return self._current_page
+        pass
 
     @current_page.setter
     def current_page(self, page: pywikibot.page.BasePage) -> None:
@@ -1236,15 +1229,7 @@ class BaseBot(OptionHandler):
 
         :param page: The working page
         """
-        if page != self._current_page:
-            self._current_page = page
-            msg = f'Working on {page.title()!r}'
-            if config.colorized_output:
-                _log(msg)
-                _stdout(
-                    f'\n\n>>> <<lightpurple>>{page.title()}<<default>> <<<')
-            else:
-                _stdout(msg)
+        pass
 
     def user_confirm(self, question: str) -> bool:
         """Obtain user response if bot option 'always' not enabled."""
@@ -1630,12 +1615,7 @@ class Bot(BaseBot):
     @property
     def site(self) -> BaseSite | None:
         """Get the current site."""
-        if not self._site:
-            _warning('Bot.site was not set before being retrieved.')
-            self.site = pywikibot.Site()
-            _warning(f'Using the default site: {self.site}')
-        assert self._site is not None
-        return self._site
+        pass
 
     @site.setter
     def site(self, site: BaseSite | None) -> None:
@@ -1645,22 +1625,7 @@ class Bot(BaseBot):
         is set each time a page is on a site different from the previous
         page.
         """
-        if not site:
-            self._site = None
-            return
-
-        if site not in self._sites:
-            _log(f'LOADING SITE {site} VERSION: {site.mw_version}')
-
-            self._sites.add(site)
-            if len(self._sites) == 2:
-                _log(f'{self.__class__.__name__} uses multiple sites')
-
-        if self._site and self._site != site:
-            _log(f'{type(self).__name__}: changing site from {self._site} '
-                 f'to {site}')
-
-        self._site = site
+        pass
 
     def run(self) -> None:
         """Check if it automatically updates the site before run."""
@@ -1720,22 +1685,12 @@ class SingleSiteBot(BaseBot):
     @property
     def site(self) -> BaseSite:
         """Site that the bot is using."""
-        if not self._site:
-            raise ValueError('The site has not been defined yet.')
-        return self._site
+        pass
 
     @site.setter
     def site(self, value: BaseSite | None) -> None:
         """Set the current site but warns if different."""
-        if self._site:
-            # Warn in any case where the site is (probably) changed after
-            # setting it the first time. The appropriate variant is not to use
-            # self.site at all or define it once and never change it again
-            if self._site == value:
-                _warning('Defined site without changing it.')
-            else:
-                _warning(f'Changed the site from "{self._site}" to "{value}"')
-        self._site = value
+        pass
 
     def init_page(self, item: Any) -> pywikibot.page.BasePage:
         """Set site if not defined."""
@@ -1895,23 +1850,17 @@ class AutomaticTWSummaryBot(CurrentPageBot):
     @property
     def summary_parameters(self) -> dict[str, str]:
         """A dictionary of all parameters for i18n."""
-        if hasattr(self, '_summary_parameters'):
-            return self._summary_parameters
-        return {}
+        pass
 
     @summary_parameters.setter
     def summary_parameters(self, value: dict[str, str]) -> None:
         """Set the i18n dictionary."""
-        if not isinstance(value, dict):
-            raise TypeError(
-                f'"value" must be a dict but {type(value).__name__} was found.'
-            )
-        self._summary_parameters = value
+        pass
 
     @summary_parameters.deleter
     def summary_parameters(self) -> None:
         """Delete the i18n dictionary."""
-        del self._summary_parameters
+        pass
 
     def put_current(self, *args: Any, **kwargs: Any) -> bool:
         """Defining a summary if not already defined and then call original.
@@ -2026,16 +1975,7 @@ class WikidataBot(Bot, ExistingPageBot):
 
         :param property_name: Property to find
         """
-        ns = self.repo.property_namespace
-        for page in self.repo.search(property_name, total=1, namespaces=ns):
-            prop = pywikibot.PropertyPage(self.repo, page.title())
-            pywikibot.info(
-                f'Assuming that {property_name} property is {prop.id}.')
-            return prop.id
-
-        return pywikibot.input(
-            f'Property {property_name} was not found. Please enter the '
-            f'property ID (e.g. P123) of it:').upper()
+        pass
 
     def user_edit_entity(self, entity: pywikibot.page.WikibasePage,
                          data: dict[str, str] | None = None,

@@ -158,7 +158,7 @@ class OutputOption(Option):
 
         .. version-added:: 6.2
         """
-        return ''
+        pass
 
 
 class StandardOption(Option):
@@ -177,14 +177,7 @@ class StandardOption(Option):
 
     def format(self, default: str | None = None) -> str:
         """Return a formatted string for that option."""
-        index = self.option.lower().find(self.shortcut)
-        shortcut = self.shortcut
-        if self.shortcut == default:
-            shortcut = self.shortcut.upper()
-        if index >= 0:
-            return (f'{self.option[:index]}[{shortcut}]'
-                    f'{self.option[index + len(self.shortcut):]}')
-        return f'{self.option} [{shortcut}]'
+        pass
 
     def result(self, value: str) -> Any:
         """Return the lowercased shortcut."""
@@ -209,7 +202,7 @@ class OutputProxyOption(OutputOption, StandardOption):
     @property
     def out(self) -> str:
         """Return the contents."""
-        return self._outputter.out
+        pass
 
 
 class NestedOption(OutputOption, StandardOption):
@@ -229,8 +222,7 @@ class NestedOption(OutputOption, StandardOption):
 
     def format(self, default: str | None = None) -> str:
         """Return a formatted string for that option."""
-        self._output = Option.formatted(self.description, self.options)
-        return super().format(default=default)
+        pass
 
     def handled(self, value: str) -> Option | None:
         """Return itself if it applies or the applying sub option."""
@@ -244,7 +236,7 @@ class NestedOption(OutputOption, StandardOption):
     @property
     def out(self) -> str:
         """Output of suboptions."""
-        return self._output
+        pass
 
 
 class ContextOption(OutputOption, StandardOption):
@@ -269,9 +261,7 @@ class ContextOption(OutputOption, StandardOption):
     @property
     def out(self) -> str:
         """Output section of the text."""
-        start = max(0, self.start - self.context)
-        end = min(len(self.text), self.end + self.context)
-        return self.text[start:end]
+        pass
 
 
 class Choice(StandardOption):
@@ -291,7 +281,7 @@ class Choice(StandardOption):
     @property
     def replacer(self) -> InteractiveReplace | None:
         """The replacer."""
-        return self._replacer
+        pass
 
     @abstractmethod
     def handle(self) -> Any:
@@ -303,7 +293,7 @@ class Choice(StandardOption):
 
     def handle_link(self) -> bool:
         """The current link will be handled by this choice."""
-        return False
+        pass
 
 
 class StaticChoice(Choice):
@@ -383,15 +373,12 @@ class AlwaysChoice(Choice):
 
     def handle_link(self) -> bool:
         """Directly return answer whether it's applying it always."""
-        return self.always
+        pass
 
     @property
     def answer(self) -> Any:
         """Get the actual default answer instructing the replacement."""
-        if not self.replacer:
-            raise ValueError('AlwaysChoice requires a replacer')
-
-        return self.replacer.handle_answer(self.replacer._default)
+        pass
 
 
 class IntegerOption(Option):
@@ -425,42 +412,16 @@ class IntegerOption(Option):
     @property
     def minimum(self) -> int:
         """Return the lower bound of the range of allowed values."""
-        return self._min
+        pass
 
     @property
     def maximum(self) -> int | None:
         """Return the upper bound of the range of allowed values."""
-        return self._max
+        pass
 
     def format(self, default: str | None = None) -> str:
         """Return a formatted string showing the range."""
-        value: int | None = None
-
-        if default is not None and self.test(default):
-            value = self.parse(default)
-            default = f'[{value}]'
-        else:
-            default = ''
-
-        if self.minimum is not None or self.maximum is not None:
-            if default and value == self.minimum:
-                minimum = default
-                default = ''
-            else:
-                minimum = '' if self.minimum is None else str(self.minimum)
-            if default and value == self.maximum:
-                maximum = default
-                default = ''
-            else:
-                maximum = '' if self.maximum is None else str(self.maximum)
-            default = f'-{default}-' if default else '-'
-            if self.minimum == self.maximum:
-                rng = minimum
-            else:
-                rng = minimum + default + maximum
-        else:
-            rng = 'any' + default
-        return f'{self.prefix}<number> [{rng}]'
+        pass
 
     def parse(self, value: str) -> int:
         """Return integer from value with prefix removed."""
@@ -489,15 +450,12 @@ class ListOption(IntegerOption):
 
     def format(self, default: str | None = None) -> str:
         """Return a string showing the range."""
-        if not self._list:
-            raise ValueError('The sequence is empty.')
-
-        return super().format(default=default)
+        pass
 
     @property
     def maximum(self) -> int:
         """Return the maximum value."""
-        return len(self._list)
+        pass
 
     def result(self, value: str) -> Any:
         """Return a tuple with the prefix and selected value."""
@@ -533,15 +491,7 @@ class ShowingListOption(ListOption, OutputOption):
     @property
     def out(self) -> str:
         """Output text of the enumerated list."""
-        text = ''
-        if self.pre is not None:
-            text = self.pre + '\n'
-        width = len(str(self.maximum))
-        for i, item in enumerate(self._list, self.minimum):
-            text += '{:>{width}} - {}\n'.format(i, item, width=width)
-        if self.post is not None:
-            text += self.post + '\n'
-        return text
+        pass
 
 
 class MultipleChoiceList(ListOption):
@@ -592,11 +542,7 @@ class HighlightContextOption(ContextOption):
     @property
     def out(self) -> str:
         """Highlighted output section of the text."""
-        start = max(0, self.start - self.context)
-        end = min(len(self.text), self.end + self.context)
-        return (f'{self.text[start:self.start]}<<{self.color}>>'
-                f'{self.text[self.start:self.end]}<<default>>'
-                f'{self.text[self.end:end]}')
+        pass
 
 
 class UnhandledAnswer(Exception):  # noqa: N818
@@ -714,11 +660,7 @@ class InteractiveReplace:
 
     def handle_answer(self, choice: str) -> Any:
         """Return the result for replace_links."""
-        for c in self.choices:
-            if isinstance(c, Choice) and c.shortcut == choice:
-                return c.handle()
-
-        raise ValueError(f'Invalid choice "{choice}"')
+        pass
 
     def __call__(self, link: Link | Page,
                  text: str, groups: Mapping[str, str],
@@ -741,74 +683,28 @@ class InteractiveReplace:
     @property
     def choices(self) -> tuple[StandardOption, ...]:
         """Return the tuple of choices."""
-        choices = []
-        for name, choice in self._own_choices:
-            if getattr(self, 'allow_' + name):
-                choices += [choice]
-        if self.context_delta > 0:
-            choices += [HighlightContextOption(
-                'more context', 'm', self.current_text, self.context,
-                self.context_delta, *self.current_range)]
-        choices += self.additional_choices
-        return tuple(choices)
+        pass
 
     def handle_link(self) -> Any:
         """Handle the currently given replacement."""
-        choices = self.choices
-        for c in choices:
-            if isinstance(c, AlwaysChoice) and c.handle_link():
-                return c.answer
-
-        question = 'Should the link '
-        if self.context > 0:
-            rng = self.current_range
-            text = self.current_text
-            # at the beginning of the link, start red color.
-            # at the end of the link, reset the color to default
-            pywikibot.info(text[max(0, rng[0] - self.context): rng[0]]
-                           + f'<<lightred>>{text[rng[0]:rng[1]]}<<default>>'
-                           + text[rng[1]: rng[1] + self.context])
-        else:
-            question += (
-                f'<<lightred>>{self._old.canonical_title()}<<default>> ')
-
-        if self._new is False:
-            question += 'be unlinked?'
-        else:
-            question += (f'target to <<lightpurple>>'
-                         f'{self._new.canonical_title()}<<default>>?')
-
-        choice = pywikibot.input_choice(question, choices,
-                                        default=self._default,
-                                        automatic_quit=self._quit)
-
-        assert isinstance(choice, str)
-        return self.handle_answer(choice)
+        pass
 
     @property
     def current_link(self) -> Link | Page:
         """Get the current link when it's handling one currently."""
-        if self._current_match is None:
-            raise ValueError('No current link')
-        return self._current_match[0]
+        pass
 
     @property
     def current_text(self) -> str:
         """Get the current text when it's handling one currently."""
-        if self._current_match is None:
-            raise ValueError('No current text')
-        return self._current_match[1]
+        pass
 
     @property
     def current_groups(self) -> Mapping[str, str]:
         """Get the current groups when it's handling one currently."""
-        if self._current_match is None:
-            raise ValueError('No current groups')
-        return self._current_match[2]
+        pass
 
     @property
     def current_range(self) -> tuple[int, int]:
         """Get the current range when it's handling one currently."""
-        if self._current_match is None:
-            raise ValueError('No current range')
-        return self._current_match[3]
+        pass

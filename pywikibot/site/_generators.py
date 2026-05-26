@@ -994,7 +994,7 @@ class GeneratorsMixin:
         """
         def _maxsize_filter(item):
             """Return True if page text length is within maxsize limit."""
-            return len(item.text.encode(self.encoding())) <= maxsize
+            pass
 
         misermode = self.siteinfo.get('misermode') and maxsize is not None
         if filterredir not in (True, False, None):
@@ -1055,14 +1055,7 @@ class GeneratorsMixin:
             (default False); note that this means the contents of the category
             description page, not the pages that are members of the category
         """
-        acgen = self._generator(api.PageGenerator,
-                                type_arg='allcategories', gacfrom=start,
-                                total=total, g_content=content)
-        if prefix:
-            acgen.request['gacprefix'] = prefix
-        if reverse:
-            acgen.request['gacdir'] = 'descending'
-        return acgen
+        pass
 
     def botusers(
         self,
@@ -1186,19 +1179,7 @@ class GeneratorsMixin:
         :keyword sha1base36: Same as sha1 but in base 36
         :keyword prop: Image information to get. Default is timestamp
         """
-        if start and end:
-            self.assert_valid_iter_params(
-                'filearchive', start, end, reverse, is_ts=False)
-        fagen = self._generator(api.ListGenerator,
-                                type_arg='filearchive',
-                                fafrom=start,
-                                fato=end,
-                                total=total)
-        for k, v in kwargs.items():
-            fagen.request['fa' + k] = v
-        if reverse:
-            fagen.request['fadir'] = 'descending'
-        return fagen
+        pass
 
     def blocks(
         self,
@@ -1427,15 +1408,7 @@ class GeneratorsMixin:
             newest)
         :param total: Maximum number of events to iterate
         """
-        if start and end:
-            self.assert_valid_iter_params('abuselog', start, end, reverse)
-
-        gen = self._generator(api.ListGenerator, type_arg='abuselog',
-                              afluser=user, total=total,
-                              aflstart=start, aflend=end,
-                              afldir=('newer' if reverse else 'older'),
-                              **kwargs)
-        return gen
+        pass
 
     def recentchanges(
         self,
@@ -1691,25 +1664,7 @@ class GeneratorsMixin:
         :raises TypeError: A namespace identifier has an inappropriate
             type such as NoneType or bool
         """
-        if start and end:
-            self.assert_valid_iter_params(
-                'watchlist_revs', start, end, reverse)
-
-        wlgen = self._generator(
-            api.ListGenerator, type_arg='watchlist',
-            wlprop='user|comment|timestamp|title|ids|flags',
-            wlallrev='', namespaces=namespaces, total=total)
-        # TODO: allow users to ask for "patrol" as well?
-        if start is not None:
-            wlgen.request['wlstart'] = start
-        if end is not None:
-            wlgen.request['wlend'] = end
-        if reverse:
-            wlgen.request['wldir'] = 'newer'
-        filters = {'minor': minor, 'bot': bot, 'anon': anon}
-        wlgen.request['wlshow'] = api.OptionSet(self, 'watchlist', 'show',
-                                                filters)
-        return wlgen
+        pass
 
     def _check_view_deleted(self, msg_prefix: str, prop: list[str]) -> None:
         """Check if the user can view deleted comments and content.
@@ -1718,15 +1673,7 @@ class GeneratorsMixin:
         :param prop: Requested props to check
         :raises UserRightsError: User cannot view a requested prop
         """
-        err = f'{msg_prefix}: User:{self.user()} not authorized to view '
-        if not self.has_right('deletedhistory'):
-            if self.mw_version < '1.34':
-                raise UserRightsError(err + 'deleted revisions.')
-            if 'comment' in prop or 'parsedcomment' in prop:
-                raise UserRightsError(err + 'comments of deleted revisions.')
-        if ('content' in prop and not (self.has_right('deletedtext')
-                                       or self.has_right('undelete'))):
-            raise UserRightsError(err + 'deleted content.')
+        pass
 
     def deletedrevs(
         self,
@@ -1769,42 +1716,7 @@ class GeneratorsMixin:
         :keyword prop: Which properties to get. Defaults are ids, user,
             comment, flags and timestamp
         """
-        # set default properties
-        prop = kwargs.pop('prop',
-                          ['ids', 'user', 'comment', 'flags', 'timestamp'])
-        if isinstance(prop, str):
-            prop = prop.split('|')
-        if content:
-            prop.append('content')
-
-        if start and end:
-            self.assert_valid_iter_params('deletedrevs', start, end, reverse)
-
-        self._check_view_deleted('deletedrevs', prop)
-
-        revids = kwargs.pop('revids', None)
-        if not bool(titles) ^ (revids is not None):
-            raise Error('deletedrevs: either "titles" or "revids" parameter '
-                        'must be given.')
-
-        gen = self._generator(api.PropertyGenerator,
-                              type_arg='deletedrevisions',
-                              titles=titles, revids=revids, total=total)
-
-        gen.request['drvstart'] = start
-        gen.request['drvend'] = end
-        gen.request['drvprop'] = prop
-        if reverse:
-            gen.request['drvdir'] = 'newer'
-
-        # handle other parameters like user
-        for k, v in kwargs.items():
-            gen.request['drv' + k] = v
-
-        for data in gen:
-            with suppress(KeyError):
-                data['revisions'] = data.pop('deletedrevisions')
-                yield data
+        pass
 
     def alldeletedrevisions(
         self,
@@ -1839,28 +1751,7 @@ class GeneratorsMixin:
             ``ids``, ``timestamp``, ``flags``, ``user``, and ``comment``
             (if the bot has the right to view).
         """
-        if 'start' in kwargs and 'end' in kwargs:
-            self.assert_valid_iter_params('alldeletedrevisions',
-                                          kwargs['start'],
-                                          kwargs['end'],
-                                          reverse)
-        prop = kwargs.pop('prop', [])
-        parameters = {'adr' + k: v for k, v in kwargs.items()}
-        if not prop:
-            prop = ['ids', 'timestamp', 'flags', 'user']
-            if self.has_right('deletedhistory'):
-                prop.append('comment')
-        if content:
-            prop.append('content')
-        self._check_view_deleted('alldeletedrevisions', prop)
-        parameters['adrprop'] = prop
-        if reverse:
-            parameters['adrdir'] = 'newer'
-        yield from self._generator(api.ListGenerator,
-                                   type_arg='alldeletedrevisions',
-                                   namespaces=namespaces,
-                                   total=total,
-                                   parameters=parameters)
+        pass
 
     def users(
         self,
@@ -2194,7 +2085,7 @@ class GeneratorsMixin:
 
         :param total: Number of pages to return
         """
-        return self.querypage('Wantedfiles', total)
+        pass
 
     def wantedtemplates(
         self,
@@ -2204,7 +2095,7 @@ class GeneratorsMixin:
 
         :param total: Number of pages to return
         """
-        return self.querypage('Wantedtemplates', total)
+        pass
 
     def wantedcategories(
         self,
@@ -2214,7 +2105,7 @@ class GeneratorsMixin:
 
         :param total: Number of pages to return
         """
-        return self.querypage('Wantedcategories', total)
+        pass
 
     def uncategorizedcategories(
         self,
@@ -2267,7 +2158,7 @@ class GeneratorsMixin:
 
         :param total: Number of pages to return
         """
-        return self.querypage('Unusedcategories', total)
+        pass
 
     def unusedfiles(
         self,
@@ -2317,7 +2208,7 @@ class GeneratorsMixin:
 
         :param total: Number of pages to return
         """
-        return self.querypage('Listredirects', total)
+        pass
 
     @deprecate_arg('type', 'protect_type')  # since 9.0
     def protectedpages(
@@ -2400,8 +2291,7 @@ class GeneratorsMixin:
         """
         def ignore_talkpages(page: pywikibot.page.BasePage) -> bool:
             """Ignore talk pages and special pages."""
-            ns = page.namespace()
-            return ns >= 0 and not page.namespace() % 2
+            pass
 
         expiry = None if force else pywikibot.config.API_config_expiry
         gen = api.PageGenerator(site=self, generator='watchlistraw',

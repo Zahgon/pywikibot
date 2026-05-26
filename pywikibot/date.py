@@ -77,27 +77,8 @@ def multi(value, tuplst: tuplst_type) -> Any:
         f'multi function is not implemented for type {type(value).__name__}')
 
 
-@multi.register(int)
-def _(value: int, tuplst: tuplst_type) -> Any:
-    # Find a predicate that gives true for this int value, and run a
-    # function
-    for func, pred in tuplst:
-        if pred(value):
-            return func(value)
-    raise ValueError('could not find a matching function')
 
 
-@multi.register(str)
-def _(value: str, tuplst: tuplst_type) -> Any:
-    # Try all functions, and test result against predicates
-    for func, pred in tuplst:
-        try:
-            res = func(value)
-        except ValueError:
-            continue
-        if pred(res):
-            return res
-    raise ValueError('could not find a matching function')
 
 
 #
@@ -115,8 +96,7 @@ def dh_dayOfMnth(value: int, pattern: str) -> str:
     The single integer should be <=31, no conversion, no rounding (used
     in days of month).
     """
-    # For now use January because it has all 31 days
-    return dh_noConv(value, pattern, formatLimits[dayMnthFmts[0]][0])
+    pass
 
 
 def dh_mnthOfYear(value: int, pattern: str) -> str:
@@ -125,7 +105,7 @@ def dh_mnthOfYear(value: int, pattern: str) -> str:
     The value should be >=1000, no conversion, no rounding (used in
     month of the year)
     """
-    return dh_noConv(value, pattern, _formatLimit_MonthOfYear[0])
+    pass
 
 
 def dh_decAD(value: int, pattern: str) -> str:
@@ -167,7 +147,7 @@ def dh_simpleYearAD(value: int) -> str:
 
     This value should be representing a year with no extra symbols.
     """
-    return dh_yearAD(value, '%d')
+    pass
 
 
 def dh_number(value: int, pattern: str) -> str:
@@ -197,7 +177,7 @@ def dh_millenniumBC(value: int, pattern: str) -> str:
 
 def decSinglVal(v: Sequence[Any]) -> Any:
     """Return first item in list v."""
-    return v[0]
+    pass
 
 
 def encDec0(i: int) -> int:
@@ -229,9 +209,6 @@ def slh(value: int, lst: Sequence[str]) -> str:
     return lst[value - 1]
 
 
-@slh.register
-def _(value: str, lst: Sequence[str]) -> int:
-    return lst.index(value) + 1
 
 
 @singledispatch
@@ -240,9 +217,6 @@ def dh_singVal(value: int, match: str) -> str:
     return dh_constVal(value, 0, match)
 
 
-@dh_singVal.register
-def _(value: str, match: str) -> int:
-    return dh_constVal(value, 0, match)  # type: ignore[return-value]
 
 
 @singledispatch
@@ -257,11 +231,6 @@ def dh_constVal(value: int, ind: int, match: str) -> str:
     raise ValueError(f'unknown value {value}')
 
 
-@dh_constVal.register
-def _(value: str, ind: int, match: str) -> int:
-    if value == match:
-        return ind
-    raise ValueError(f'unknown value {value}')
 
 
 def alwaysTrue(x: Any) -> bool:
@@ -273,12 +242,12 @@ def alwaysTrue(x: Any) -> bool:
     :param x: Not used
     :return: True
     """
-    return True
+    pass
 
 
 def monthName(lang: str, ind: int) -> str:
     """Return the month name for a language."""
-    return formats['MonthName'][lang](ind)
+    pass
 
 
 # Helper for KN: digits representation
@@ -340,9 +309,7 @@ def intToRomanNum(i: int) -> str:
 
     :raises IndexError: Roman value *i* is nont in range 0..31
     """
-    if not 0 <= i < len(_romanNumbers):
-        raise IndexError(f'Roman value {i} is not defined')
-    return _romanNumbers[i]
+    pass
 
 
 def romanNumToInt(v: str) -> int:
@@ -351,7 +318,7 @@ def romanNumToInt(v: str) -> int:
     .. version-changed:: 9.5
        ``XXXI`` can be converted.
     """
-    return _romanNumbers.index(v)
+    pass
 
 
 # Each tuple must 3 parts: a list of all possible digits (symbols), encoder
@@ -425,15 +392,6 @@ def escapePattern2(
 
         return newpattern, strpattern + '%s'
 
-    @decode.register(str)
-    def _(dec: str, subpattern: str, newpattern: str,
-          strpattern: str) -> tuple[str, str]:
-        # Special case for strings that are replaced instead of decoded
-        # Keep the original text for strPattern
-        assert len(subpattern) < 3, (
-            f'Invalid pattern {pattern}: Cannot use zero padding size '
-            f'in {subpattern}!')
-        return newpattern + re.escape(dec), strpattern + subpattern
 
     if pattern not in _escPtrnCache2:
         newPattern = ''  # match starts at the beginning of the string
@@ -513,26 +471,6 @@ def dh(value: int, pattern: str, encf: encf_type, decf: decf_type,
     return strPattern % _make_parameter(decoders[0], params)
 
 
-@dh.register(str)
-def _(value: str, pattern: str, encf: encf_type, decf: decf_type,
-      filter_func: Callable[[int], bool] | None = None) -> int:
-    compPattern, _strPattern, decoders = escapePattern2(pattern)
-    m = compPattern.match(value)
-    if m:
-        # decode each found value using provided decoder
-        values = [decoder[2](m[i])
-                  for i, decoder in enumerate(decoders, start=1)]
-        decValue = decf(values)
-
-        assert not isinstance(decValue, str), \
-            'Decoder must not return a string!'
-
-        # recursive call to re-encode and see if we get the original
-        # (may through filter_func exception)
-        if value == dh(decValue, pattern, encf, decf, filter_func):
-            return decValue
-
-    raise ValueError("reverse encoding didn't match")
 
 
 def _make_parameter(decoder: decoder_type, param: int) -> str:
@@ -1708,11 +1646,7 @@ def makeMonthNamedList(lang: str, pattern: str = '%s',
     replaced by the localized month name. Use ``%%`` for any other
     parameters that should be preserved.
     """
-    if makeUpperCase is None:
-        return [pattern % monthName(lang, m) for m in range(1, 13)]
-
-    func = first_upper if makeUpperCase else first_lower
-    return [pattern % func(monthName(lang, m)) for m in range(1, 13)]
+    pass
 
 
 # Add day of the month formats to the formatting table: "en:May 15"
@@ -1934,8 +1868,7 @@ for month in yrMnthFmts:
 
 def _format_limit_dom(days: int) -> tuple[Callable[[int], bool], int, int]:
     """Return day of month format limit."""
-    assert 29 <= days <= 31
-    return lambda v: 1 <= v <= days, 1, days + 1
+    pass
 
 
 for monthId in range(12):
@@ -2050,4 +1983,4 @@ def get_month_delta(date1: datetime.date, date2: datetime.date) -> int:
     It does only work on calendars with 12 months per year, and where
     the months are consecutive and non-negative numbers.
     """
-    return date2.month - date1.month + (date2.year - date1.year) * 12
+    pass

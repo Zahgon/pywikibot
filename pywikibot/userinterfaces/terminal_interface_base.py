@@ -600,21 +600,11 @@ class TerminalHandler(logging.StreamHandler):
         lock to ensure that only one instance of this handler can write
         to the console at a time.
         """
-        self.lock = TerminalHandler.sharedlock
+        pass
 
     def emit(self, record) -> None:
         """Emit the record formatted to the output."""
-        self.flush()
-        if record.name == 'py.warnings':
-            # Each warning appears twice
-            # the second time it has a 'message'
-            if 'message' in record.__dict__:
-                return
-
-            record.__dict__.setdefault('newline', '\n')
-
-        msg = self.format(record)
-        self.UI.output(msg, targetStream=self.stream)
+        pass
 
 
 class MaxLevelFilter:
@@ -631,6 +621,4 @@ class MaxLevelFilter:
 
     def filter(self, record):
         """Return true if the level is below or equal to the set level."""
-        if self.level:
-            return record.levelno <= self.level
-        return True
+        pass

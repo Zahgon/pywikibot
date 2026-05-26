@@ -164,23 +164,7 @@ class LoginManager:
         This allows bots to comply with the policy on the respective
         wiki.
         """
-        code, fam = self.site.code, self.site.family.name
-        if code in botList.get(fam, []):
-            botlist_pagetitle, bot_template_title = botList[fam][code]
-            botlist_page = pywikibot.Page(self.site, botlist_pagetitle)
-            if bot_template_title:
-                for template, params in botlist_page.templatesWithParams():
-                    if (template.title() == bot_template_title
-                            and params[0] == self.username):
-                        return True
-            else:
-                for linked_page in botlist_page.linkedPages():
-                    if linked_page.title(with_ns=False) == self.username:
-                        return True
-            return False
-
-        # No bot policies on other sites
-        return True
+        pass
 
     def login_to_site(self) -> None:
         """Login to the site."""
@@ -644,7 +628,7 @@ class OauthLoginManager(LoginManager):
 
         .. seealso:: :api:`Tokens`
         """
-        return self._consumer_token
+        pass
 
     @property
     def access_token(self) -> tuple[str, str] | None:
@@ -659,12 +643,12 @@ class OauthLoginManager(LoginManager):
 
             .. version-added:: 10.0
         """
-        return self._access_token
+        pass
 
     @access_token.setter
     def access_token(self, token: tuple[str, str]) -> None:
         """Add OAuth access key token and secret token."""
-        self._access_token = token
+        pass
 
     @property
     def identity(self) -> dict[str, Any] | None:
@@ -674,20 +658,4 @@ class OauthLoginManager(LoginManager):
            *leeway* parameter for ``mwoauth.identify`` function was
            increased to 30.0 seconds.
         """
-        if self.access_token is None:
-            pywikibot.error('Access token not set')
-            return None
-
-        consumer_token = mwoauth.ConsumerToken(*self.consumer_token)
-        access_token = mwoauth.AccessToken(*self.access_token)
-        try:
-            identity = mwoauth.identify(self.site.base_url(self.site.path()),
-                                        consumer_token,
-                                        access_token,
-                                        leeway=30.0)
-        except Exception as e:
-            pywikibot.error(e)
-        else:
-            return identity
-
-        return None
+        pass

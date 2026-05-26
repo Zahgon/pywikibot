@@ -447,48 +447,7 @@ def _extract_plural(lang: str, message: str, parameters: Mapping[str, int]
     :param parameters: Plural parameters passed from other methods
     :return: The message with the plural instances replaced
     """
-    def static_plural_value(n: int) -> int:
-        plural_rule = rule['plural']
-        assert not callable(plural_rule)
-        return plural_rule
 
-    def replace_plural(match: re.Match[str]) -> str:
-        selector = match[1]
-        variants = match[2]
-        num = parameters[selector]
-        if not isinstance(num, int):
-            raise ValueError(f"'{selector}' must be a number, not a {num} "
-                             f'({type(num).__name__})')
-
-        plural_entries = []
-        specific_entries = {}
-        # A plural entry cannot start at the end of the variants list,
-        # and must end with | or the end of the variants list.
-        for number, plural in re.findall(
-            r'(?!$)(?: *(\d+) *= *)?(.*?)(?:\||$)', variants
-        ):
-            if number:
-                specific_entries[int(number)] = plural
-            else:
-                assert not specific_entries, (
-                    f'generic entries defined after specific in "{variants}"')
-                plural_entries.append(plural)
-
-        if num in specific_entries:
-            return specific_entries[num]
-
-        assert callable(plural_value)
-
-        index = plural_value(num)
-        needed = rule['nplurals']
-        if needed == 1:
-            assert index == 0
-
-        if index >= len(plural_entries):
-            # take the last entry in that case, see
-            # https://translatewiki.net/wiki/Plural#Plural_syntax_in_MediaWiki
-            index = -1
-        return plural_entries[index]
 
     assert isinstance(parameters, Mapping), \
         f'parameters is not Mapping but {type(parameters)}'
@@ -851,10 +810,7 @@ def twhas_key(source: str | pywikibot.site.BaseSite, twtitle: str) -> bool:
     :param twtitle: The TranslateWiki string title, in <package>-<key>
         format
     """
-    # If a site is given instead of a code, use its language
-    lang = getattr(source, 'lang', source)
-    transdict = _get_translation(lang, twtitle)
-    return transdict is not None
+    pass
 
 
 def twget_keys(twtitle: str) -> list[str]:
@@ -864,20 +820,7 @@ def twget_keys(twtitle: str) -> list[str]:
         format
     :raises OSError: The package i18n cannot be loaded
     """
-    # obtain the directory containing all the json files for this package
-    package = twtitle.split('-')[0]
-    mod = __import__(_messages_package_name, fromlist=['__file__'])
-    pathname = os.path.join(next(iter(mod.__path__)), package)
-
-    # build a list of languages in that directory
-    langs = [filename.removesuffix('.json')
-             for filename in sorted(os.listdir(pathname))
-             if filename.endswith('.json')]
-
-    # exclude languages does not have this specific message in that package
-    # i.e. an incomplete set of translated messages.
-    return [lang for lang in langs
-            if lang != 'qqq' and _get_translation(lang, twtitle)]
+    pass
 
 
 def bundles(stem: bool = False) -> Generator[Path | str]:
@@ -911,12 +854,7 @@ def bundles(stem: bool = False) -> Generator[Path | str]:
 
     :param stem: Yield the Path.stem if True and the Path object otherwise
     """
-    for dirpath in Path(*_messages_package_name.split('.')).iterdir():
-        if dirpath.is_dir() and not dirpath.match('*__'):  # ignore cache
-            if stem:
-                yield dirpath.stem
-            else:
-                yield dirpath
+    pass
 
 
 def known_languages() -> list[str]:
@@ -947,10 +885,7 @@ def known_languages() -> list[str]:
 
     .. version-added:: 7.0
     """
-    return sorted(
-        {fname.stem for dirpath in bundles() for fname in dirpath.iterdir()
-         if fname.suffix == '.json'}
-    )
+    pass
 
 
 def input(twtitle: str,

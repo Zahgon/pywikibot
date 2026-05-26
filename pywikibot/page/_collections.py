@@ -41,7 +41,7 @@ class BaseDataDict(MutableMapping):
     @classmethod
     def new_empty(cls, repo):
         """Construct a new empty BaseDataDict."""
-        return cls()
+        pass
 
     def __getitem__(self, key: BaseSite | str) -> Any:
         key = self.normalizeKey(key)
@@ -221,7 +221,7 @@ class ClaimCollection(MutableMapping):
     @classmethod
     def new_empty(cls, repo):
         """Construct a new empty ClaimCollection."""
-        return cls(repo)
+        pass
 
     def __getitem__(self, key):
         return self._data[key]
@@ -335,7 +335,7 @@ class SiteLinkCollection(MutableMapping):
     @classmethod
     def new_empty(cls, repo):
         """Construct a new empty SiteLinkCollection."""
-        return cls(repo)
+        pass
 
     @classmethod
     def fromJSON(cls, data, repo):
@@ -546,7 +546,7 @@ class SubEntityCollection(MutableSequence):
     @classmethod
     def new_empty(cls, repo):
         """Construct a new empty SubEntityCollection."""
-        return cls(repo)
+        pass
 
     @classmethod
     def fromJSON(cls, data, repo):

@@ -219,19 +219,7 @@ class MementoClient(OldMementoClient):
         :param timeout: the timeout value for the HTTP connection.
         :return: True if a valid timegate, else False.
         """
-        if not response:
-            if not accept_datetime:
-                accept_datetime = MementoClient.convert_to_http_datetime(
-                    datetime.now())
-
-            response = MementoClient.request_head(
-                uri,
-                accept_datetime=accept_datetime,
-                session=session,
-                timeout=timeout
-            )
-        return old_is_timegate(
-            uri, accept_datetime, response=response, session=session)
+        pass
 
     @staticmethod
     def is_memento(uri: str,
@@ -249,12 +237,7 @@ class MementoClient(OldMementoClient):
         :param timeout: (int) the timeout value for the HTTP connection.
         :return: True if a Memento, False otherwise
         """
-        if not response:
-            response = MementoClient.request_head(uri,
-                                                  follow_redirects=False,
-                                                  session=session,
-                                                  timeout=timeout)
-        return old_is_memento(uri, response=response)
+        pass
 
     @staticmethod
     def convert_to_http_datetime(dt: datetime | None) -> str:

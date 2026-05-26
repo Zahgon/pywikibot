@@ -36,28 +36,12 @@ class Family(family.SubdomainFamily):
     @classproperty
     def domains(cls):
         """List of domains used by family wikiHow."""
-        return [
-            cls.domain,
-            'wikihow.cz',  # cs
-            'wikihow.it',
-            'wikihow.jp',  # ja
-            'wikihow.com.tr',
-            'wikihow.vn',  # vi
-        ]
+        pass
 
     @classproperty
     def langs(cls):
         """Property listing family languages."""
-        code_replacement = {'cz': 'cs', 'jp': 'ja', 'vn': 'vi'}
-        cls.langs = super().langs
-        cls.langs['en'] = 'www.' + cls.domain
-        for domain in cls.domains:
-            if domain == cls.domain:
-                continue
-            *_, code = domain.rpartition('.')
-            code = code_replacement.get(code, code)
-            cls.langs[code] = 'www.' + domain
-        return cls.langs
+        pass
 
     def scriptpath(self, code) -> str:
         """Return the script path for this family."""

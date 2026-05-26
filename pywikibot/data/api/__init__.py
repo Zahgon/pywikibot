@@ -68,12 +68,6 @@ class CTEBinaryBytesGenerator(BytesGenerator):
 
     """Workaround for bug in python 3 email handling of CTE binary."""
 
-    def _handle_text(self, msg) -> None:
-        if msg['content-transfer-encoding'] == 'binary':
-            self._fp.write(  # type: ignore[attr-defined]
-                msg.get_payload(decode=True))
-        else:
-            super()._handle_text(msg)  # type: ignore[misc]
 
     _writeBody = _handle_text  # noqa: N815
 

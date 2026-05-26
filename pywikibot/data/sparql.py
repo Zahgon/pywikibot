@@ -86,7 +86,7 @@ class SparqlQuery(WaitingMixin):
 
         :return: Response object from last request or None
         """
-        return self.last_response
+        pass
 
     def select(self,
                query: str,
@@ -186,10 +186,7 @@ class SparqlQuery(WaitingMixin):
 
         :param query: Query text
         """
-        if headers is None:
-            headers = DEFAULT_HEADERS
-        data = self.query(query, headers=headers)
-        return data['boolean']
+        pass
 
     def get_items(self, query, item_name: str = 'item', result_type=set):
         """Retrieve items which satisfy given query.

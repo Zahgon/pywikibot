@@ -201,20 +201,7 @@ class CANCEL(IntEnum):
 
 def _format_isbn_match(match: re.Match[str], *, strict: bool = True) -> str:
     """Helper function to validate and format a single matched ISBN."""
-    if not stdnum_isbn:
-        raise NotImplementedError(
-            'ISBN functionality not available. Install stdnum package.')
-
-    isbn = match['code']
-    try:
-        stdnum_isbn.validate(isbn)
-    except stdnum_isbn.ValidationError as e:
-        if strict:
-            raise
-        pywikibot.log(f'ISBN "{isbn}" validation error: {e}')
-        return isbn
-
-    return stdnum_isbn.format(isbn)
+    pass
 
 
 def _reformat_ISBNs(text: str, *, strict: bool = True) -> str:
@@ -222,8 +209,7 @@ def _reformat_ISBNs(text: str, *, strict: bool = True) -> str:
 
     :raises Exception: Invalid ISBN encountered when strict enabled
     """
-    return textlib.reformat_ISBNs(
-        text, lambda match: _format_isbn_match(match, strict=strict))
+    pass
 
 
 class CosmeticChangesToolkit:
@@ -330,12 +316,7 @@ class CosmeticChangesToolkit:
 
         Remove their language code prefix.
         """
-        if not self.talkpage and pywikibot.calledModuleName() != 'interwiki':
-            interwikiR = re.compile(
-                rf'\[\[(?: *:)? *{self.site.code} *: *([^\[\]\n]*)\]\]'
-            )
-            text = interwikiR.sub(r'[[\1]]', text)
-        return text
+        pass
 
     def standardizePageFooter(self, text: str) -> str:
         """Standardize page footer.
@@ -359,58 +340,7 @@ class CosmeticChangesToolkit:
         :raises ValueError: Wrong value of sortkey in
             :attr:`main_sortkey` for the given site
         """
-        categories = []
-        interwiki_links = {}
-
-        # get categories
-        if not self.template:
-            categories = textlib.getCategoryLinks(text, site=self.site)
-
-        if not self.talkpage:
-            subpage = False
-            if self.template:
-                loc = i18n.translate(self.site.code, moved_links)
-                if loc is not None and loc[1] in self.title:
-                    subpage = True
-
-            # get interwiki
-            interwiki_links = textlib.getLanguageLinks(
-                text, insite=self.site, template_subpage=subpage)
-
-            # remove interwiki
-            text = textlib.removeLanguageLinks(text, site=self.site)
-
-        # add categories, main to top
-        if categories:
-            # TODO: Sort categories in alphabetic order, e.g. using
-            # categories.sort()? (T100265)
-            # TODO: Get main categories from Wikidata?
-            main = pywikibot.Category(self.site, 'Category:' + self.title)
-            if main in categories:
-                main = categories.pop(categories.index(main))
-                if main.sortKey:
-                    sortkey = main.sortKey
-                else:
-                    sortkey = i18n.translate(self.site, main_sortkey,
-                                             fallback=['_default'])
-                    if sortkey not in [' ', '*', '!', '#']:
-                        raise ValueError(
-                            f'sort key for {self.site} is {sortkey} but must'
-                            "be one of ' ', '*', '!', '#'")
-                main = pywikibot.Category(main, sort_key=sortkey)
-                categories.insert(0, main)
-
-            text = textlib.replaceCategoryLinks(text, categories,
-                                                site=self.site)
-
-        # add interwiki
-        if interwiki_links:
-            text = textlib.replaceLanguageLinks(text, interwiki_links,
-                                                site=self.site,
-                                                template=self.template,
-                                                template_subpage=subpage)
-
-        return text
+        pass
 
     def translateAndCapitalizeNamespaces(self, text: str) -> str:
         """Use localized namespace names.
@@ -418,120 +348,11 @@ class CosmeticChangesToolkit:
         .. version-changed:: 7.4
            No longer expect a specific namespace alias for File:
         """
-        # arz uses English stylish codes
-        if self.site.sitename == 'wikipedia:arz':
-            return text
-        # wiki links aren't parsed here.
-        exceptions = ['nowiki', 'comment', 'math', 'pre']
-
-        for namespace in self.site.namespaces.values():
-            if namespace == Namespace.MAIN:
-                # skip main (article) namespace
-                continue
-            # a clone is needed. Won't change the namespace dict
-            namespaces = list(namespace)
-            if (namespace == Namespace.FILE
-                    and self.site.family.name == 'wikipedia'):
-                if self.site.code in ('en', 'fr'):
-                    # do not change "Image" on en-wiki and fr-wiki
-                    with suppress(ValueError):
-                        namespaces.remove('Image')
-                if self.site.code == 'hu':
-                    # do not change "Kép" on hu-wiki
-                    with suppress(ValueError):
-                        namespaces.remove('Kép')
-                elif self.site.code == 'pt':
-                    # use "Imagem" by default on pt-wiki (per T57242)
-                    with suppress(ValueError):
-                        namespaces.insert(
-                            0, namespaces.pop(namespaces.index('Imagem')))
-            # final namespace variant
-            final_ns = namespaces.pop(0)
-            if namespace in (Namespace.USER, Namespace.USER_TALK):
-                # skip localized user namespace, maybe gender is used
-                namespaces = ['User'
-                              if namespace == Namespace.USER
-                              else 'User talk']
-            # lowerspaced and underscored namespaces
-            for i, item in enumerate(namespaces):
-                ns = item.replace(' ', '[ _]')
-                namespaces[i] = f'[{ns[0]}{ns[0].lower()}]{ns[1:]}'
-            namespaces.append(first_lower(final_ns))
-            if final_ns and namespaces:
-                if (self.site.sitename == 'wikipedia:pt'
-                        and namespace == Namespace.FILE):
-                    # only change on these file extensions (per T57242)
-                    extensions = ('png', 'gif', 'jpg', 'jpeg', 'svg', 'tiff',
-                                  'tif')
-                    text = textlib.replaceExcept(
-                        text,
-                        r'\[\[\s*({}) *:(?P<name>[^\|\]]*?\.({}))'
-                        r'(?P<label>.*?)\]\]'
-                        .format('|'.join(namespaces), '|'.join(extensions)),
-                        fr'[[{final_ns}:\g<name>\g<label>]]',
-                        exceptions)
-                else:
-                    text = textlib.replaceExcept(
-                        text,
-                        r'\[\[\s*({}) *:(?P<nameAndLabel>.*?)\]\]'
-                        .format('|'.join(namespaces)),
-                        fr'[[{final_ns}:\g<nameAndLabel>]]',
-                        exceptions)
-        return text
+        pass
 
     def translateMagicWords(self, text: str) -> str:
         """Use localized magic words."""
-        # not wanted at ru
-        # arz uses English stylish codes
-        # no need to run on English wikis
-        if self.site.code in ['arz', 'en', 'ru']:
-            return text
-
-        def init_cache() -> None:
-            for magicword in ('img_thumbnail', 'img_left', 'img_center',
-                              'img_right', 'img_none', 'img_framed',
-                              'img_frameless', 'img_border', 'img_upright',
-                              'img_baseline', 'img_sub', 'img_super',
-                              'img_top', 'img_text_top', 'img_middle',
-                              'img_bottom', 'img_text_bottom'):
-                aliases = self.site.getmagicwords(magicword)
-                if len(aliases) > 1:
-                    cache.update((alias, aliases[0]) for alias in aliases[1:]
-                                 if '$1' not in alias)
-            if not cache:
-                cache[False] = True  # signal there is nothing to replace
-
-        def replace_magicword(match: re.Match[str]) -> str:
-            """Replace magic words in file link params, leaving captions."""
-            linktext = match.group()
-            if cache.get(False):
-                return linktext
-
-            params = match.group(2)  # includes pre-leading |
-            if not params:
-                return linktext
-
-            if not cache:
-                init_cache()
-
-            # do the magic job
-            marker = textlib.findmarker(params)
-            params = textlib.replaceExcept(
-                params, r'\|', marker, ['link', 'template'])
-            parts = params.split(marker)
-            replaced = '|'.join(cache.get(p.strip(), p) for p in parts)
-
-            # extract namespace
-            m = cast(re.Match[str],
-                     re.match(r'\[\[\s*(?P<namespace>[^:]+)\s*:', linktext))
-
-            return f'[[{m["namespace"]}:{match["filename"]}{replaced}]]'
-
-        cache: dict[bool | str, Any] = {}
-        exceptions = ['comment', 'nowiki', 'pre', 'syntaxhighlight']
-        regex = textlib.get_regexes('file', self.site)[0]
-        return textlib.replaceExcept(
-            text, regex, replace_magicword, exceptions)
+        pass
 
     def cleanUpLinks(self, text: str) -> str:
         """Tidy up wikilinks found in a string.
@@ -556,221 +377,19 @@ class CosmeticChangesToolkit:
         :param text: String to perform the clean-up on
         :return: Text with tidied wikilinks
         """
-        # helper function which works on one link and either returns it
-        # unmodified, or returns a replacement.
-        def handleOneLink(match: re.Match[str]) -> str:
-            # Convert URL-encoded characters to str
-            try:
-                titleWithSection = url2string(match['titleWithSection'],
-                                              encodings=self.site.encodings())
-            except UnicodeDecodeError:
-                # Ignore broken links
-                return match.group()
-
-            label = match['label']
-            trailingChars = match['linktrail']
-            newline = match['newline'] or ''
-            # entire link but convert URL-encoded text
-            oldlink = url2string(match.group(),
-                                 encodings=self.site.encodings())
-
-            is_interwiki = None
-            with suppress(exceptions.ServerError):
-                is_interwiki = self.site.isInterwikiLink(titleWithSection)
-            if is_interwiki is not False:
-                return oldlink
-
-            # The link looks like this:
-            # [[page_title|link_text]]trailing_chars
-            # We only work on namespace 0 because pipes and linktrails work
-            # differently for images and categories.
-            page = pywikibot.Page(pywikibot.Link(titleWithSection, self.site))
-            in_main_namespace = None
-            with suppress(exceptions.InvalidTitleError):
-                in_main_namespace = page.namespace() == Namespace.MAIN
-            if not in_main_namespace:
-                return oldlink
-
-            # Replace underlines by spaces, remove double spaces
-            titleWithSection = re.sub('[_ ]+', ' ', titleWithSection)
-            # Remove unnecessary leading spaces from title,
-            # but remember if we did this because we eventually want
-            # to re-add it outside of the link later.
-            titleLength = len(titleWithSection)
-            titleWithSection = titleWithSection.lstrip()
-            hadLeadingSpaces = not newline \
-                and len(titleWithSection) != titleLength
-            hadTrailingSpaces = False
-            # Remove unnecessary trailing spaces from title,
-            # but remember if we did this because it may affect
-            # the linktrail and because we eventually want to
-            # re-add it outside of the link later.
-            if not trailingChars:
-                titleLength = len(titleWithSection)
-                titleWithSection = titleWithSection.rstrip()
-                hadTrailingSpaces = len(titleWithSection) != titleLength
-
-            if not titleWithSection:
-                # just skip empty links.
-                return match.group()
-
-            # Remove unnecessary initial and final spaces from label.
-            # Please note that some editors prefer spaces around pipes.
-            # (See [[en:Wikipedia:Semi-bots]]). We remove them anyway.
-            if label is None:
-                label = titleWithSection
-            else:
-                # Remove unnecessary leading spaces from label,
-                # but remember if we did this because we want
-                # to re-add it outside of the link later.
-                labelLength = len(label)
-                label = label.lstrip()
-                hadLeadingSpaces = not newline and len(label) != labelLength
-                # Remove unnecessary trailing spaces from label,
-                # but remember if we did this because it affects
-                # the linktrail.
-                if not trailingChars:
-                    labelLength = len(label)
-                    label = label.rstrip()
-                    hadTrailingSpaces = len(label) != labelLength
-
-            if trailingChars:
-                label += trailingChars
-
-            if self.site.siteinfo['case'] == 'first-letter':
-                firstcase_title = first_lower(titleWithSection)
-                firstcase_label = first_lower(label)
-            else:
-                firstcase_title = titleWithSection
-                firstcase_label = label
-
-            if firstcase_label == firstcase_title:
-                newLink = f'[[{label}]]'
-            # Check if we can create a link with trailing characters
-            # instead of a pipelink
-            elif (firstcase_label.startswith(firstcase_title)
-                  and trailR.sub('', label[len(titleWithSection):]) == ''):
-                newLink = (f'[[{label[:len(titleWithSection)]}]]'
-                           f'{label[len(titleWithSection):]}')
-            else:
-                # Try to capitalize the first letter of the title.
-                # Not useful for languages that don't capitalize nouns.
-                # TODO: Add a configuration variable for each site,
-                # which determines if the link target is written in
-                # uppercase
-                if self.site.sitename == 'wikipedia:de':
-                    titleWithSection = first_upper(titleWithSection)
-                newLink = f'[[{titleWithSection}|{label}]]'
-
-            # re-add spaces that were pulled out of the link.
-            # Examples:
-            #   text[[ title ]]text        -> text [[title]] text
-            #   text[[ title | name ]]text -> text [[title|name]] text
-            #   text[[ title |name]]text   -> text[[title|name]]text
-            #   text[[title| name]]text    -> text [[title|name]]text
-            return f"{newline}{' ' if hadLeadingSpaces else ''}" \
-                   f"{newLink}{' ' if hadTrailingSpaces else ''}"
-
-        trailR = re.compile(self.site.linktrail())
-    # The regular expression which finds links. Results consist of four groups:
-    # group <newline> depends whether the links starts with a new line.
-    # group <titleWithSection> is the page title and section, that is,
-    # everything before | or ]. It'll include the # to make life easier for us.
-    # group <label> is the alternative link title between | and ].
-    # group <linktrail> is the link trail after ]] which are part of the word.
-    # note that the definition of 'letter' varies from language to language.
-        linkR = re.compile(
-            r'(?P<newline>[\n]*)\[\[(?P<titleWithSection>[^\]\|]+)'
-            r'(\|(?P<label>[^\]\|]*))?\]\](?P<linktrail>'
-            + self.site.linktrail() + ')')
-
-        return textlib.replaceExcept(text, linkR, handleOneLink,
-                                     ['comment', 'math', 'nowiki', 'pre',
-                                      'startspace'])
+        pass
 
     def resolveHtmlEntities(self, text: str) -> str:
         """Replace HTML entities with string."""
-        ignore = [
-            38,     # Ampersand (&amp;)
-            39,     # Single quotation mark (&apos;) per T26093
-            60,     # Less than (&lt;)
-            62,     # Greater than (&gt;)
-            91,     # Opening square bracket ([)
-                    # - sometimes used intentionally inside links
-            93,     # Closing square bracket (])
-                    # - used intentionally inside links
-            124,    # Vertical bar (|)
-                    # - used intentionally in navigation bar templates on w:de
-            160,    # Non-breaking space (&nbsp;)
-                    # - not supported by Firefox textareas
-            173,    # Soft-hyphen (&shy;) - enable editing
-            8206,   # Left-to-right mark (&ltr;)
-            8207,   # Right-to-left mark (&rtl;)
-        ]
-        if self.template:
-            ignore.append(32)  # Space ( )
-            ignore.append(58)  # Colon (:)
-        # TODO: T254350 - what other extension tags should be avoided?
-        # (graph, math, score, timeline, etc.)
-        return pywikibot.html2unicode(
-            text, ignore=ignore, exceptions=['comment', 'syntaxhighlight'])
+        pass
 
     def removeEmptySections(self, text: str) -> str:
         """Cleanup empty sections."""
-        # userspace contains article stubs without nobots/in use templates
-        if self.namespace == Namespace.USER:
-            return text
-
-        skippings = ['comment', 'category']
-        skip_regexes = textlib.get_regexes(skippings, self.site)
-        # site defined templates
-        skip_templates = {
-            'cs': ('Pahýl[ _]část',),  # stub section
-        }
-        if self.site.code in skip_templates:
-            for template in skip_templates[self.site.code]:
-                skip_regexes.append(
-                    re.compile(r'\{\{\s*%s\s*\}\}' % template, re.IGNORECASE))
-        # empty lists
-        skip_regexes.append(re.compile(r'(?m)^[\*#] *$'))
-
-        # get stripped sections
-        stripped_text = textlib.removeLanguageLinks(text, self.site, '\n')
-        for reg in skip_regexes:
-            stripped_text = reg.sub(r'', stripped_text)
-
-        strip_sections = textlib.extract_sections(
-            stripped_text, self.site).sections
-
-        # get proper sections
-        header, sections, footer = textlib.extract_sections(text, self.site)
-
-        if len(strip_sections) > len(sections):
-            # there must be something wrong with the extracted sections; skip
-            return text
-
-        # iterate stripped sections and create a new page body
-        new_body: textlib.SectionList = textlib.SectionList()
-        for i, strip_section in enumerate(strip_sections):
-            current_dep = sections[i].level
-            try:
-                next_dep = sections[i + 1].level
-            except IndexError:
-                next_dep = 0
-
-            if strip_section.content.strip() or current_dep < next_dep:
-                new_body.extend(sections[i])
-        return header + ''.join(new_body) + footer
+        pass
 
     def removeUselessSpaces(self, text: str) -> str:
         """Cleanup multiple or trailing spaces."""
-        exceptions = ['comment', 'math', 'nowiki', 'pre', 'syntaxhighlight',
-                      'startspace', 'table']
-        if self.site.sitename != 'wikipedia:cs':
-            exceptions.append('template')
-
-        return textlib.replaceExcept(text, r'(?m)[\t ]+( |$)', r'\1',
-                                     exceptions, site=self.site)
+        pass
 
     def removeNonBreakingSpaceBeforePercent(self, text: str) -> str:
         """Remove a non-breaking space between number and percent sign.
@@ -779,8 +398,7 @@ class CosmeticChangesToolkit:
         space in front of a percent sign, so it is no longer required to
         place it manually.
         """
-        return textlib.replaceExcept(
-            text, r'(\d)&(?:nbsp|#160|#x[Aa]0);%', r'\1 %', ['timeline'])
+        pass
 
     def cleanUpSectionHeaders(self, text: str) -> str:
         """Add a space between the equal signs and the section title.
@@ -799,13 +417,7 @@ class CosmeticChangesToolkit:
            it might be that it is not wanted on other wikis. If there
            are any complaints, please file a bug report.
         """
-        if self.site.sitename in ['wiktionary:jbo', 'wiktionary:en']:
-            return text
-        return textlib.replaceExcept(
-            text,
-            r'(?m)^(={1,6})[ \t]*(?P<title>.*[^\s=])[ \t]*\1[ \t]*\r?\n',
-            r'\1 \g<title> \1\n',
-            ['comment', 'math', 'nowiki', 'pre'])
+        pass
 
     def putSpacesInLists(self, text: str) -> str:
         """Add a space between the * or # and the text.
@@ -815,259 +427,36 @@ class CosmeticChangesToolkit:
            is not wanted on other wikis. If there are any complaints,
            please file a bug report.
         """
-        if not self.template:
-            exceptions = ['comment', 'math', 'nowiki', 'pre',
-                          'syntaxhighlight', 'template', 'timeline',
-                          self.site.redirect_regex]
-            text = textlib.replaceExcept(
-                text,
-                r'(?m)'
-                r'^(?P<bullet>[:;]*(\*+|#+)[:;\*#]*)(?P<char>[^\s\*#:;].+?)',
-                r'\g<bullet> \g<char>',
-                exceptions)
-        return text
+        pass
 
     def replaceDeprecatedTemplates(self, text: str) -> str:
         """Replace deprecated templates."""
-        exceptions = ['comment', 'math', 'nowiki', 'pre']
-        builder = textlib.MultiTemplateMatchBuilder(self.site)
-
-        if self.site.family.name in deprecatedTemplates \
-           and self.site.code in deprecatedTemplates[self.site.family.name]:
-            for template in deprecatedTemplates[
-                    self.site.family.name][self.site.code]:
-                old, new = template
-                new = '{{%s}}' % new if new else ''
-
-                text = textlib.replaceExcept(
-                    text,
-                    builder.pattern(old),
-                    new, exceptions)
-
-        return text
+        pass
 
     # from fixes.py
     def fixSyntaxSave(self, text: str) -> str:
         """Convert weblinks to wikilink, fix link syntax."""
-        def replace_link(match: re.Match[str]) -> str:
-            """Create a string to replace a single link."""
-            replacement = '[['
-            if re.match(
-                    r'(?:{}):'.format('|'.join(
-                        (*self.site.namespaces[Namespace.FILE],
-                         *self.site.namespaces[Namespace.CATEGORY]))),
-                    match['link']):
-                replacement += ':'
-
-            replacement += match['link']
-            if match['title']:
-                replacement += '|' + match['title']
-
-            return replacement + ']]'
-
-        exceptions = ['comment', 'math', 'nowiki', 'pre', 'startspace',
-                      'syntaxhighlight']
-
-        # link to the wiki working on
-        # Only use suffixes for article paths
-        for suffix in self.site._interwiki_urls(True):
-            http_url = self.site.base_url(suffix, 'http')
-            if self.site.protocol() == 'http':
-                https_url = None
-            else:
-                https_url = self.site.base_url(suffix, 'https')
-
-            # compare strings without the protocol, if they are empty support
-            # also no prefix (//en.wikipedia.org/…)
-            http = urlparse(http_url)
-            https = urlparse(https_url)
-            if https_url is not None and http.netloc == https.netloc:
-                urls = ['(?:https?:)?'
-                        + re.escape(urlunparse(('', *http[1:])))]
-            else:
-                urls = [re.escape(url) for url in (http_url, https_url)
-                        if url is not None]
-
-            for url in urls:
-                # unescape {} placeholder
-                url = url.replace(r'\{\}', '{title}')
-
-                # Only include links which don't include the separator
-                # as the wikilink won't support additional parameters
-                separator = '?&' if '?' in suffix else '?'
-
-                # Match first a non space in the title to prevent that multiple
-                # spaces at the end without title will be matched by it
-                title_regex = (rf'(?P<link>[^{separator}]+?)'
-                               r'(\s+(?P<title>[^\s].*?))')
-                url_regex = fr'\[\[?{url}?\s*\]\]?'
-                text = textlib.replaceExcept(
-                    text,
-                    url_regex.format(title=title_regex),
-                    replace_link, exceptions, site=self.site)
-
-        # external link in/starting with double brackets
-        text = textlib.replaceExcept(
-            text,
-            r'\[\[(?P<url>https?://[^\]]+?)\]\]?',
-            r'[\g<url>]', exceptions, site=self.site)
-
-        # external link and description separated by a pipe, with
-        # whitespace in front of the pipe, so that it is clear that
-        # the dash is not a legitimate part of the URL.
-        text = textlib.replaceExcept(
-            text,
-            r'\[(?P<url>https?://[^\|\] \r\n]+?) +\| *(?P<label>[^\|\]]+?)\]',
-            r'[\g<url> \g<label>]', exceptions)
-
-        # dash in external link, where the correct end of the URL can
-        # be detected from the file extension. It is very unlikely that
-        # this will cause mistakes.
-        extensions = [fr'\.{ext}'
-                      for ext in ['pdf', 'html?', 'php', 'aspx?', 'jsp']]
-
-        return textlib.replaceExcept(
-            text,
-            r'\[(?P<url>https?://[^\|\] ]+?(' + '|'.join(extensions) + r')) *'
-            r'\| *(?P<label>[^\|\]]+?)\]',
-            r'[\g<url> \g<label>]', exceptions
-        )
+        pass
 
     def fixHtml(self, text: str) -> str:
         """Replace html markups with wikitext markups."""
-        def replace_header(match: re.Match[str]) -> str:
-            """Create a header string for replacing."""
-            depth = int(match[1])
-            return r'{0} {1} {0}'.format('=' * depth, match[2])
-
-        # Everything case-insensitive (?i)
-        # Keep in mind that MediaWiki automatically converts <br> to <br />
-        exceptions = ['comment', 'math', 'nowiki', 'pre', 'startspace',
-                      'syntaxhighlight']
-        text = textlib.replaceExcept(text, r'(?i)<(b|strong)>(.*?)</\1>',
-                                     r"'''\2'''", exceptions, site=self.site)
-        text = textlib.replaceExcept(text, r'(?i)<(i|em)>(.*?)</\1>',
-                                     r"''\2''", exceptions, site=self.site)
-        # horizontal line without attributes in a single line
-        text = textlib.replaceExcept(text, r'(?i)([\r\n])<hr[ /]*>([\r\n])',
-                                     r'\1----\2', exceptions)
-        # horizontal line with attributes; can't be done with wiki syntax
-        # so we only make it XHTML compliant
-        text = textlib.replaceExcept(text, r'(?i)<hr ([^>/]+?)>',
-                                     r'<hr \1 />',
-                                     exceptions)
-        # a header where only spaces are in the same line
-        text = textlib.replaceExcept(
-            text,
-            r'(?i)(?<=[\r\n]) *<h([1-7])> *([^<]+?) *</h\1> *(?=[\r\n])',
-            replace_header,
-            exceptions)
-        # TODO: maybe we can make the bot replace <p> tags with \r\n's.
-        return text
+        pass
 
     def fixReferences(self, text: str) -> str:
         """Fix references tags."""
-        # See also
-        # https://en.wikipedia.org/wiki/User:AnomieBOT/source/tasks/OrphanReferenceFixer.pm
-        exceptions = ['comment', 'math', 'nowiki', 'pre', 'syntaxhighlight',
-                      'startspace']
-
-        # it should be name = " or name=" NOT name   ="
-        text = re.sub(r'(?i)<ref +name(= *| *=)"', r'<ref name="', text)
-        # remove empty <ref/>-tag
-        text = textlib.replaceExcept(text,
-                                     r'(?i)(<ref\s*/>|<ref *>\s*</ref>)',
-                                     r'', exceptions)
-        text = textlib.replaceExcept(text,
-                                     r'(?i)<ref\s+([^>]+?)\s*>\s*</ref>',
-                                     r'<ref \1/>', exceptions)
-        return text
+        pass
 
     def fixStyle(self, text: str) -> str:
         """Convert prettytable to wikitable class."""
-        exceptions = ['comment', 'math', 'nowiki', 'pre', 'startspace',
-                      'syntaxhighlight']
-        if self.site.code in ('de', 'en'):
-            text = textlib.replaceExcept(text,
-                                         r'(class="[^"]*)prettytable([^"]*")',
-                                         r'\1wikitable\2', exceptions)
-        return text
+        pass
 
     def fixTypo(self, text: str) -> str:
         """Fix units."""
-        exceptions: list[str | re.Pattern[str]] = [
-            'comment',
-            'gallery',
-            'hyperlink',
-            'interwiki',
-            'link',
-            'nowiki',
-            'math',
-            'pre',
-            'startspace',
-            'syntaxhighlight',
-        ]
-
-        # change <number> ccm -> <number> cm³
-        text = textlib.replaceExcept(text, r'(\d)\s*(?:&nbsp;)?ccm',
-                                     r'\1&nbsp;cm³', exceptions,
-                                     site=self.site)
-        # Solve wrong Nº sign with °C or °F
-        # additional exception requested on fr-wiki for this stuff
-        pattern = re.compile('«.*?»')
-        exceptions.append(pattern)
-        text = textlib.replaceExcept(text, r'(\d)\s*(?:&nbsp;)?[º°]([CF])',
-                                     r'\1&nbsp;°\2', exceptions,
-                                     site=self.site)
-        text = textlib.replaceExcept(text, 'º([CF])', '°' + r'\1',
-                                     exceptions,
-                                     site=self.site)
-        return text
+        pass
 
     def fixArabicLetters(self, text: str) -> str:
         """Fix Arabic and Persian letters."""
-        if self.site.code not in ['ckb', 'fa']:
-            return text
-
-        exceptions: list[str | re.Pattern[str]] = [
-            'file',
-            'gallery',
-            'hyperlink',
-            'interwiki',
-            'inputbox',
-            # FIXME: but changes letters inside wikilinks
-            # 'link',
-            'math',
-            'pre',
-            'template',
-            'timeline',
-            'ref',
-            'startspace',
-            'syntaxhighlight',
-        ]
-
-        digits = NON_ASCII_DIGITS['fa']
-        faChrs = 'ءاآأإئؤبپتثجچحخدذرزژسشصضطظعغفقکگلمنوهیةيك' + digits
-
-        # not to let bot edits in ascii numerals content
-        exceptions.append(re.compile(f'[^{faChrs}] *?"*? *?, *?[^{faChrs}]'))
-        text = textlib.replaceExcept(text, ',', '،', exceptions,
-                                     site=self.site)
-        if self.site.code == 'ckb':
-            text = textlib.replaceExcept(text,
-                                         '\u0647([.\u060c_<\\]\\s])',
-                                         '\u06d5\\1', exceptions,
-                                         site=self.site)
-            text = textlib.replaceExcept(text, 'ه\u200c', 'ە', exceptions,
-                                         site=self.site)
-            text = textlib.replaceExcept(text, 'ه', 'ھ', exceptions,
-                                         site=self.site)
-        text = textlib.replaceExcept(text, 'ك', 'ک', exceptions,
-                                     site=self.site)
-        text = textlib.replaceExcept(text, '[ىي]', 'ی', exceptions,
-                                     site=self.site)
-
-        return text
+        pass
 
     def commonsfiledesc(self, text: str) -> str:
         """Clean up file descriptions on Wikimedia Commons.
@@ -1078,63 +467,8 @@ class CosmeticChangesToolkit:
         [1]:
         https://commons.wikimedia.org/wiki/Commons:Tools/pywiki_file_description_cleanup
         """
-        if (self.site.family.name != 'commons'
-                or self.namespace != Namespace.FILE):
-            return text
-
-        # section headers to {{int:}} versions
-        exceptions = ['comment', 'includeonly', 'math', 'noinclude', 'nowiki',
-                      'pre', 'syntaxhighlight', 'ref', 'timeline']
-        text = textlib.replaceExcept(text,
-                                     r'([\r\n]|^)\=\= *Summary *\=\=',
-                                     r'\1== {{int:filedesc}} ==',
-                                     exceptions, True)
-        text = textlib.replaceExcept(
-            text,
-            r'([\r\n])\=\= *\[\[Commons:Copyright tags\|Licensing\]\]: *\=\=',
-            r'\1== {{int:license-header}} ==', exceptions, True)
-        text = textlib.replaceExcept(
-            text,
-            r'([\r\n])'
-            r'\=\= *(Licensing|License information|{{int:license}}) *\=\=',
-            r'\1== {{int:license-header}} ==', exceptions, True)
-
-        # frequent field values to {{int:}} versions
-        text = textlib.replaceExcept(
-            text,
-            r'([\r\n]\|[Ss]ource *\= *)'
-            r'(?:[Oo]wn work by uploader|[Oo]wn work|[Ee]igene [Aa]rbeit) *'
-            r'([\r\n])',
-            r'\1{{own}}\2', exceptions, True)
-        text = textlib.replaceExcept(
-            text,
-            r'(\| *Permission *\=) *(?:[Ss]ee below|[Ss]iehe unten) *([\r\n])',
-            r'\1\2', exceptions, True)
-
-        # added to transwikied pages
-        text = textlib.replaceExcept(text, r'__NOTOC__', '', exceptions, True)
-
-        # tracker element for js upload form
-        text = textlib.replaceExcept(
-            text,
-            r'<!-- *{{ImageUpload\|(?:full|basic)}} *-->',
-            '', exceptions[1:], True)
-        text = textlib.replaceExcept(text, r'{{ImageUpload\|(?:basic|full)}}',
-                                     '', exceptions, True)
-
-        # duplicated section headers
-        text = textlib.replaceExcept(
-            text,
-            r'([\r\n]|^)\=\= *{{int:filedesc}} *\=\=(?:[\r\n ]*)\=\= *'
-            r'{{int:filedesc}} *\=\=',
-            r'\1== {{int:filedesc}} ==', exceptions, True)
-        text = textlib.replaceExcept(
-            text,
-            r'([\r\n]|^)\=\= *{{int:license-header}} *\=\=(?:[\r\n ]*)'
-            r'\=\= *{{int:license-header}} *\=\=',
-            r'\1== {{int:license-header}} ==', exceptions, True)
-        return text
+        pass
 
     def fix_ISBN(self, text: str) -> str:
         """Hyphenate ISBN numbers."""
-        return _reformat_ISBNs(text, strict=self.ignore != CANCEL.MATCH)
+        pass

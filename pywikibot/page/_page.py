@@ -57,7 +57,7 @@ class Page(BasePage, WikiBlameMixin, WikiWhoMixin):
 
         :rtype: list of (str, OrderedDict)
         """
-        return textlib.extract_templates_and_params(self.text, True, True)
+        pass
 
     def templatesWithParams(  # noqa: N802
         self,
@@ -148,39 +148,7 @@ class Page(BasePage, WikiBlameMixin, WikiWhoMixin):
         :param kwargs: Arguments which are used for saving the page
             directly afterwards, like *summary* for edit summary.
         """
-        if isinstance(target_page, str):
-            target_page = pywikibot.Page(self.site, target_page)
-        elif self.site != target_page.site:
-            raise InterwikiRedirectPageError(self, target_page)
-
-        if not self.exists() and not (create or force):
-            raise NoPageError(self)
-
-        if self.exists() and not self.isRedirectPage() and not force:
-            raise IsNotRedirectPageError(self)
-
-        old_text = self.text
-        result = self.site.redirect_regex.search(old_text)
-        if result:
-            oldlink = result[1]
-            if (keep_section and '#' in oldlink
-                    and target_page.section() is None):
-                sectionlink = oldlink[oldlink.index('#'):]
-                target_page = pywikibot.Page(
-                    self.site,
-                    target_page.title() + sectionlink
-                )
-            prefix = self.text[:result.start()]
-            suffix = self.text[result.end():]
-        else:
-            prefix = suffix = ''
-
-        target_link = target_page.title(as_link=True, textlink=True,
-                                        allow_interwiki=False)
-        target_link = f'#{self.site.redirect()} {target_link}'
-        self.text = prefix + target_link + suffix
-        if save:
-            self.save(**kwargs)
+        pass
 
     def get_best_claim(self, prop: str) -> pywikibot.Claim | None:
         """Return the first best Claim for this page.

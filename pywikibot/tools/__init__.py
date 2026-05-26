@@ -258,10 +258,6 @@ class suppress_warnings(catch_warnings):  # noqa: N801
 
     def __call__(self, func):
         """Decorate func to suppress warnings."""
-        @wraps(func)
-        def suppressed_func(*args, **kwargs):
-            with self:
-                return func(*args, **kwargs)
         return suppressed_func
 
 
@@ -774,17 +770,5 @@ def cached(*arg: Callable) -> Any:
         raise TypeError(
             '"cached" decorator must be used without arguments.') from None
 
-    @wraps(fn)
-    def wrapper(obj: object, *, force=False) -> Any:
-        cache_name = '_' + fn.__name__
-        if force:
-            with suppress(AttributeError):
-                delattr(obj, cache_name)
-        try:
-            return getattr(obj, cache_name)
-        except AttributeError:
-            val = fn(obj)
-            setattr(obj, cache_name, val)
-            return val
 
     return wrapper

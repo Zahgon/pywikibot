@@ -24,11 +24,6 @@ class Family(family.SubdomainFamily, family.WikimediaFamily):
 
     test_codes = ['beta']
 
-    @classproperty
-    def code_aliases(cls):
-        cls.code_aliases = super().code_aliases.copy()
-        cls.code_aliases['mul'] = 'beta'
-        return cls.code_aliases
 
     category_redirect_templates = {
         '_default': (),

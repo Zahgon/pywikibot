@@ -136,9 +136,6 @@ class WikibaseEntity:
             f"'{type(self).__name__}' object has no attribute '{name}'"
         )
 
-    def _initialize_empty(self) -> None:
-        for key, cls in self.DATA_ATTRIBUTES.items():
-            setattr(self, key, cls.new_empty(self.repo))
 
     def _defined_by(self, singular: bool = False) -> dict[str, str]:
         """Function to provide the API parameters to identify the entity.
@@ -215,20 +212,9 @@ class WikibaseEntity:
         :rtype: int or None if it cannot be determined
         :raise NoWikibaseEntityError: if the entity doesn't exist
         """
-        if not hasattr(self, '_revid'):
-            # FIXME: unlike BasePage.latest_revision_id, this raises
-            # exception when entity is redirect, cannot use get_redirect
-            self.get()
-        return self._revid
+        pass
 
-    @latest_revision_id.setter
-    def latest_revision_id(self, value: int | None) -> None:
-        self._revid = value
 
-    @latest_revision_id.deleter
-    def latest_revision_id(self) -> None:
-        if hasattr(self, '_revid'):
-            del self._revid
 
     def exists(self) -> bool:
         """Determine if an entity exists in the data repository."""
@@ -357,10 +343,7 @@ class WikibaseEntity:
 
         :raise NoWikibaseEntityError: if this entity's id is not known
         """
-        entity_id = self.getID()
-        if entity_id == '-1':
-            raise NoWikibaseEntityError(self)
-        return f'{self.repo.concept_base_uri}{entity_id}'
+        pass
 
 
 class MediaInfo(WikibaseEntity):
@@ -416,29 +399,7 @@ class MediaInfo(WikibaseEntity):
     @property
     def file(self) -> FilePage:
         """Get the file associated with the mediainfo."""
-        if not hasattr(self, '_file'):
-            if self.id == '-1':
-                # if the above doesn't apply, this entity is in an invalid
-                # state which needs to be raised as an exception, but also
-                # logged in case an exception handler is catching
-                # the generic Error
-                msg = f'{self.__class__.__name__} is in invalid state'
-                pywikibot.error(msg)
-                raise Error(msg)
-
-            # avoid recursion with self.getID()
-            page_id = int(self.id[1:])
-            result = list(self.repo.load_pages_from_pageids([page_id]))
-            if not result:
-                raise Error(f'There is no existing page with id "{page_id}"')
-
-            page = result.pop()
-            if page.namespace() != page.site.namespaces.FILE:
-                raise Error(f'Page with id "{page_id}" is not a file')
-
-            self._file = FilePage(page)
-
-        return self._file
+        pass
 
     def get(self, force: bool = False) -> dict:
         """Fetch all MediaInfo entity data and cache it.
@@ -541,8 +502,7 @@ class MediaInfo(WikibaseEntity):
 
         .. version-added:: 8.5
         """
-        data = {'labels': labels}
-        self.editEntity(data, **kwargs)
+        pass
 
     def addClaim(self, claim, bot: bool = True, **kwargs) -> None:
         """Add a claim to the MediaInfo.
@@ -569,15 +529,7 @@ class MediaInfo(WikibaseEntity):
         :param claims: List of claims to be removed
         :type claims: List or pywikibot.Claim
         """
-        # this check allows single claims to be removed by pushing them into a
-        # list of length one.
-        if isinstance(claims, pywikibot.Claim):
-            claims = [claims]
-        data = self.repo.removeClaims(claims, **kwargs)
-        for claim in claims:
-            claim.on_item.latest_revision_id = data['pageinfo']['lastrevid']
-            claim.on_item = None
-            claim.snak = None
+        pass
 
 
 class WikibasePage(BasePage, WikibaseEntity):
@@ -754,18 +706,9 @@ class WikibasePage(BasePage, WikibaseEntity):
         :raise pywikibot.exceptions.NoPageError: if the entity doesn't
             exist
         """
-        if not hasattr(self, '_revid'):
-            self.get()
-        return self._revid
+        pass
 
-    @latest_revision_id.setter
-    def latest_revision_id(self, value) -> None:
-        self._revid = value
 
-    @latest_revision_id.deleter
-    def latest_revision_id(self) -> None:
-        # fixme: this seems too destructive in comparison to the parent
-        self.clear_cache()
 
     @allow_asynchronous
     def editEntity(
@@ -824,8 +767,7 @@ class WikibasePage(BasePage, WikibaseEntity):
         >>> item = pywikibot.ItemPage(repo, 'Q68')
         >>> item.editLabels({'en': 'Test123'})  # doctest: +SKIP
         """
-        data = {'labels': labels}
-        self.editEntity(data, **kwargs)
+        pass
 
     def editDescriptions(self, descriptions: LANGUAGE_TYPE, **kwargs) -> None:
         """Edit entity descriptions.
@@ -842,8 +784,7 @@ class WikibasePage(BasePage, WikibaseEntity):
         >>> item = pywikibot.ItemPage(repo, 'Q68')
         >>> item.editDescriptions({'en': 'Pywikibot test'})  # doctest: +SKIP
         """
-        data = {'descriptions': descriptions}
-        self.editEntity(data, **kwargs)
+        pass
 
     def editAliases(self, aliases: ALIASES_TYPE, **kwargs) -> None:
         """Edit entity aliases.
@@ -859,8 +800,7 @@ class WikibasePage(BasePage, WikibaseEntity):
         >>> item = pywikibot.ItemPage(repo, 'Q68')
         >>> item.editAliases({'en': ['pwb test item']})  # doctest: +SKIP
         """
-        data = {'aliases': aliases}
-        self.editEntity(data, **kwargs)
+        pass
 
     def set_redirect_target(
         self,
@@ -908,15 +848,7 @@ class WikibasePage(BasePage, WikibaseEntity):
         :param claims: List of claims to be removed
         :type claims: List or pywikibot.Claim
         """
-        # this check allows single claims to be removed by pushing them into a
-        # list of length one.
-        if isinstance(claims, pywikibot.Claim):
-            claims = [claims]
-        data = self.repo.removeClaims(claims, **kwargs)
-        for claim in claims:
-            claim.on_item.latest_revision_id = data['pageinfo']['lastrevid']
-            claim.on_item = None
-            claim.snak = None
+        pass
 
 
 class ItemPage(WikibasePage):
@@ -1111,22 +1043,7 @@ class ItemPage(WikibasePage):
         :raise pywikibot.exceptions.NoPageError: Uri points to non-
             existent item.
         """
-        if not isinstance(site, DataSite):
-            raise TypeError(f'{site} is not a data repository.')
-
-        base_uri, _, qid = uri.rpartition('/')
-        if base_uri != site.concept_base_uri.rstrip('/'):
-            raise ValueError(
-                'The supplied data repository ({repo}) does not correspond to '
-                'that of the item ({item})'.format(
-                    repo=site.concept_base_uri.rstrip('/'),
-                    item=base_uri))
-
-        item = cls(site, qid)
-        if not lazy_load and not item.exists():
-            raise NoPageError(item)
-
-        return item
+        pass
 
     def get(
         self,
@@ -1244,7 +1161,7 @@ class ItemPage(WikibasePage):
 
         A site can either be a Site object, or it can be a dbName.
         """
-        self.removeSitelinks([site], **kwargs)
+        pass
 
     def removeSitelinks(self, sites: list[LANGUAGE_IDENTIFIER], **kwargs
                         ) -> None:
@@ -1253,11 +1170,7 @@ class ItemPage(WikibasePage):
         Sites should be a list, with values either being Site objects,
         or dbNames.
         """
-        data = []
-        for site in sites:
-            site = SiteLinkCollection.getdbName(site)
-            data.append({'site': site, 'title': ''})
-        self.setSitelinks(data, **kwargs)
+        pass
 
     def setSitelinks(self, sitelinks: list[SITELINK_TYPE], **kwargs) -> None:
         """Set sitelinks.
@@ -1309,24 +1222,7 @@ class ItemPage(WikibasePage):
         :param force: If true, it sets the redirect target even the page
             is not redirect.
         """
-        if isinstance(target_page, str):
-            target_page = pywikibot.ItemPage(self.repo, target_page)
-        elif self.repo != target_page.repo:
-            raise InterwikiRedirectPageError(self, target_page)
-
-        if self.exists() and not self.isRedirectPage() and not force:
-            raise IsNotRedirectPageError(self)
-
-        if not save or keep_section or create:
-            raise NotImplementedError
-
-        data = self.repo.set_redirect_target(
-            from_item=self, to_item=target_page,
-            bot=kwargs.get('bot', True))
-        if data.get('success', 0):
-            del self.latest_revision_id
-            self._isredir = True
-            self._redirtarget = target_page
+        pass
 
     def isRedirectPage(self):
         """Return True if item is a redirect, False if not or not existing."""
@@ -1388,55 +1284,7 @@ class ItemPage(WikibasePage):
 
         :raises NoWikibaseEntityError: Site has no time interval properties
         """
-        fam = self.site.family
-        if not hasattr(fam, 'interval_start_property') or \
-                not hasattr(fam, 'interval_end_property'):
-            raise NoWikibaseEntityError(
-                f'{fam} does not have time interval properties')
-
-        startp, endp = fam.interval_start_property, fam.interval_end_property
-
-        def timestamp_in_interval(p, ts):
-            """Check if timestamp is within the qualifiers."""
-            q1 = p.qualifiers.get(startp, [])
-            q2 = p.qualifiers.get(endp, [])
-            d1 = d2 = None
-            if q1:
-                d1 = q1[0].getTarget()
-            if q2:
-                d2 = q2[0].getTarget()
-            if d1 and d2:
-                return d1 <= ts <= d2
-            if d1:
-                return d1 <= ts
-            if d2:
-                return d2 >= ts
-            return False
-
-        def find_value_at_timestamp(claims, ts, language):
-            """Find the first best ranked claim at a given timestamp."""
-            sorted_claims = sorted(
-                claims,
-                key=(lambda c: c.qualifiers.get(startp)[0].getTarget()
-                     if c.qualifiers.get(startp)
-                     else pywikibot.WbTime(0, site=self.site)),
-                reverse=True
-            )
-            best_claim = None
-            for claim in sorted_claims:
-                if claim.rank == 'deprecated':
-                    continue
-                if timestamp_in_interval(claim, ts):
-                    if (claim.type != 'monolingualtext'
-                            or claim.getTarget().language == language)\
-                            and claim.has_better_rank(best_claim):
-                        best_claim = claim
-            return best_claim and best_claim.getTarget()
-
-        if prop in self.claims:
-            return find_value_at_timestamp(self.claims[prop], timestamp, lang)
-
-        return None
+        pass
 
 
 class Property:
@@ -1525,7 +1373,7 @@ class Property:
 
         :raises NoWikibaseEntityError: Property does not exist
         """
-        return self.repo.get_property_type(self)
+        pass
 
     def getID(self, numeric: bool = False):
         """Get the identifier of this property.
@@ -1712,22 +1560,9 @@ class Claim(Property):
     @property
     def on_item(self) -> WikibaseEntity | None:
         """Return entity this claim is attached to."""
-        return self._on_item
+        pass
 
-    @on_item.setter
-    def on_item(self, item) -> None:
-        self._on_item = item
-        for values in self.qualifiers.values():
-            for qualifier in values:
-                qualifier.on_item = item
-        for source in self.sources:
-            for values in source.values():
-                for val in values:
-                    val.on_item = item
 
-    def _assert_attached(self) -> None:
-        if self.on_item is None:
-            raise RuntimeError('The claim is not attached to an entity')
 
     def _assert_mainsnak(self, message: str) -> None:
         if self.isQualifier:
@@ -1978,15 +1813,7 @@ class Claim(Property):
         :param snaktype: The new snak type ('value', 'somevalue', or
             'novalue').
         """
-        self._assert_attached()
-        if value:
-            self.setTarget(value)
-
-        data = self.on_item.repo.changeClaimTarget(self, snaktype=snaktype,
-                                                   **kwargs)
-        # TODO: Re-create the entire item from JSON, not just id
-        self.snak = data['claim']['id']
-        self.on_item.latest_revision_id = data['pageinfo']['lastrevid']
+        pass
 
     def getTarget(self):
         """Return the target value of this Claim.
@@ -2007,40 +1834,30 @@ class Claim(Property):
 
         :param value: Type of snak
         """
-        if value in self.SNAK_TYPES:
-            self.snaktype = value
-        else:
-            raise ValueError(
-                "snaktype must be 'value', 'somevalue', or 'novalue'.")
+        pass
 
     def getRank(self):
         """Return the rank of the Claim."""
-        return self.rank
+        pass
 
     def setRank(self, rank) -> None:
         """Set the rank of the Claim."""
-        self._assert_mainsnak('Cannot set rank on a {}')
-        self.rank = rank
+        pass
 
     def changeRank(self, rank, **kwargs):
         """Change the rank of the Claim and save."""
-        self._assert_mainsnak('Cannot change rank on a {}')
-        self._assert_attached()
-        self.rank = rank
-        return self.on_item.repo.save_claim(self, **kwargs)
+        pass
 
     def changeSnakType(self, value=None, **kwargs) -> None:
         """Save the new snak value.
 
         TODO: Is this function really needed?
         """
-        if value:
-            self.setSnakType(value)
-        self.changeTarget(snaktype=self.getSnakType(), **kwargs)
+        pass
 
     def getSources(self) -> list:
         """Return a list of sources, each being a list of Claims."""
-        return self.sources
+        pass
 
     def addSource(self, claim, **kwargs) -> None:
         """Add the claim as a source.
@@ -2080,7 +1897,7 @@ class Claim(Property):
         :param source: The source to remove
         :type source: Pywikibot.Claim
         """
-        self.removeSources([source], **kwargs)
+        pass
 
     def removeSources(self, sources, **kwargs) -> None:
         """Remove the sources.
@@ -2088,14 +1905,7 @@ class Claim(Property):
         :param sources: The sources to remove
         :type sources: List of pywikibot.Claim
         """
-        self._assert_mainsnak('Cannot remove sources from a {}')
-        self._assert_attached()
-        data = self.on_item.repo.removeSources(self, sources, **kwargs)
-        self.on_item.latest_revision_id = data['pageinfo']['lastrevid']
-        for source in sources:
-            source_dict = defaultdict(list)
-            source_dict[source.getID()].append(source)
-            self.sources.remove(source_dict)
+        pass
 
     def addQualifier(self, qualifier, **kwargs) -> None:
         """Add the given qualifier.
@@ -2103,19 +1913,7 @@ class Claim(Property):
         :param qualifier: The qualifier to add
         :type qualifier: pywikibot.page.Claim
         """
-        self._assert_mainsnak('Cannot add qualifiers to a {}')
-        if qualifier.on_item is not None:
-            raise ValueError(
-                'The provided Claim instance is already used in an entity')
-        if self.on_item is not None:
-            data = self.on_item.repo.editQualifier(self, qualifier, **kwargs)
-            self.on_item.latest_revision_id = data['pageinfo']['lastrevid']
-            qualifier.on_item = self.on_item
-        qualifier.isQualifier = True
-        if qualifier.getID() in self.qualifiers:
-            self.qualifiers[qualifier.getID()].append(qualifier)
-        else:
-            self.qualifiers[qualifier.getID()] = [qualifier]
+        pass
 
     def removeQualifier(self, qualifier, **kwargs) -> None:
         """Remove the qualifier. Call removeQualifiers().
@@ -2123,7 +1921,7 @@ class Claim(Property):
         :param qualifier: The qualifier to remove
         :type qualifier: pywikibot.page.Claim
         """
-        self.removeQualifiers([qualifier], **kwargs)
+        pass
 
     def removeQualifiers(self, qualifiers, **kwargs) -> None:
         """Remove the qualifiers.
@@ -2131,13 +1929,7 @@ class Claim(Property):
         :param qualifiers: The qualifiers to remove
         :type qualifiers: List of pywikibot.Claim
         """
-        self._assert_mainsnak('Cannot remove qualifiers from a {}')
-        self._assert_attached()
-        data = self.on_item.repo.remove_qualifiers(self, qualifiers, **kwargs)
-        self.on_item.latest_revision_id = data['pageinfo']['lastrevid']
-        for qualifier in qualifiers:
-            self.qualifiers[qualifier.getID()].remove(qualifier)
-            qualifier.on_item = None
+        pass
 
     def target_equals(self, value) -> bool:
         """Check whether the Claim's target is equal to specified value.
@@ -2187,9 +1979,7 @@ class Claim(Property):
         :param target: Qualifier target to check presence of
         :return: True if the qualifier was found, false otherwise
         """
-        self._assert_mainsnak('{}s cannot have qualifiers')
-        return any(qualifier.target_equals(target)
-                   for qualifier in self.qualifiers.get(qualifier_id, []))
+        pass
 
     def _formatValue(self) -> dict:
         """Format the target into the proper JSON value that Wikibase wants.
@@ -2237,10 +2027,7 @@ class Claim(Property):
         :param other: The other claim to compare with.
         :return: True if this claim has a better rank, False otherwise.
         """
-        if other is None:
-            return True
-        rank_order = {'preferred': 3, 'normal': 2, 'deprecated': 1}
-        return rank_order.get(self.rank, 0) > rank_order.get(other.rank, 0)
+        pass
 
 
 class LexemePage(WikibasePage):
@@ -2392,16 +2179,7 @@ class LexemePage(WikibasePage):
             successfully. This is intended for use by bots that need to
             keep track of which saves were successful.
         """
-        if form.on_lexeme is not None:
-            raise ValueError('The provided LexemeForm instance is already '
-                             'used in an entity')
-        data = self.repo.add_form(self, form, **kwargs)
-        form.id = data['form']['id']
-        form.on_lexeme = self
-        form._content = data['form']
-        form.get()
-        self.forms.append(form)
-        self.latest_revision_id = data['lastrevid']
+        pass
 
     def remove_form(self, form, **kwargs) -> None:
         """Remove a form from the lexeme.
@@ -2409,11 +2187,7 @@ class LexemePage(WikibasePage):
         :param form: The form to remove
         :type form: pywikibot.LexemeForm
         """
-        data = self.repo.remove_form(form, **kwargs)
-        form.on_lexeme.latest_revision_id = data['lastrevid']
-        form.on_lexeme.forms.remove(form)
-        form.on_lexeme = None
-        form.id = '-1'
+        pass
 
     # TODO: senses
 
@@ -2466,20 +2240,8 @@ class LexemeSubEntity(WikibaseEntity):
             data['id'] = self.id
         return data
 
-    @property
-    def on_lexeme(self) -> LexemePage:
-        if self._on_lexeme is None:
-            lexeme_id = self.id.partition('-')[0]
-            self._on_lexeme = LexemePage(self.repo, lexeme_id)
-        return self._on_lexeme
 
-    @on_lexeme.setter
-    def on_lexeme(self, lexeme) -> None:
-        self._on_lexeme = lexeme
 
-    @on_lexeme.deleter
-    def on_lexeme(self) -> None:
-        self._on_lexeme = None
 
     @allow_asynchronous
     def addClaim(self, claim, **kwargs) -> None:
@@ -2506,15 +2268,7 @@ class LexemeSubEntity(WikibaseEntity):
         :param claims: List of claims to be removed
         :type claims: List or pywikibot.Claim
         """
-        # this check allows single claims to be removed by pushing them into a
-        # list of length one.
-        if isinstance(claims, pywikibot.Claim):
-            claims = [claims]
-        data = self.repo.removeClaims(claims, **kwargs)
-        for claim in claims:
-            claim.on_item.latest_revision_id = data['pageinfo']['lastrevid']
-            claim.on_item = None
-            claim.snak = None
+        pass
 
 
 class LexemeForm(LexemeSubEntity):
@@ -2577,21 +2331,7 @@ class LexemeForm(LexemeSubEntity):
 
         :param data: Data to be saved
         """
-        if self.id == '-1':
-            # Update only locally
-            if 'representations' in data:
-                self.representations = LanguageDict(data['representations'])
-
-            if 'grammaticalFeatures' in data:
-                self.grammaticalFeatures = set()
-                for value in data['grammaticalFeatures']:
-                    if not isinstance(value, ItemPage):
-                        value = ItemPage(self.repo, value)
-                    self.grammaticalFeatures.add(value)
-        else:
-            data = self._normalizeData(data)
-            updates = self.repo.edit_form_elements(self, data, **kwargs)
-            self._content = updates['form']
+        pass
 
 
 # Add LexemeForm to the class attribute "types" after its declaration.

@@ -48,9 +48,7 @@ class InteractiveUnlink(InteractiveReplace):
 
     def handle_answer(self, choice):
         """Handle choice and store in bot's options."""
-        answer = super().handle_answer(choice)
-        self._bot.opt.always = self._always.always
-        return answer
+        pass
 
 
 class BaseUnlinkBot(ExistingPageBot, AutomaticTWSummaryBot):

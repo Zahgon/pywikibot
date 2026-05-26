@@ -149,17 +149,7 @@ def to_ascii_digits(phrase: str,
         known languages to convert.
     :return: The string with ascii digits
     """
-    if langs is None:
-        langs = NON_ASCII_DIGITS.keys()
-    elif isinstance(langs, str):
-        langs = [langs]
-
-    digits = [NON_ASCII_DIGITS[key] for key in langs
-              if key in NON_ASCII_DIGITS]
-    if digits:
-        trans = str.maketrans(''.join(digits), '0123456789' * len(digits))
-        phrase = phrase.translate(trans)
-    return phrase
+    pass
 
 
 def case_escape(case: str, string: str, *, underscore: bool = False) -> str:
@@ -700,8 +690,7 @@ class GetDataHTML(HTMLParser):
 
         :param data: The text data between HTML tags.
         """
-        if not self._skiptag:
-            self.textdata += data
+        pass
 
     def handle_starttag(self,
                         tag: str,
@@ -719,17 +708,7 @@ class GetDataHTML(HTMLParser):
             lowercase.
         :param attrs: A list of (name, value) pairs with tag attributes.
         """
-        if tag in self.keeptags:
-
-            # Reconstruct attributes for preserved tags
-            attr_text = ''.join(
-                f' {name}' if value is None else f' {name}="{value}"'
-                for name, value in attrs
-            )
-            self.textdata += f'<{tag}{attr_text}>'
-
-        if tag in self.removetags:
-            self._skiptag = tag
+        pass
 
     def handle_endtag(self, tag: str) -> None:
         """Handle a closing HTML tag.
@@ -740,10 +719,7 @@ class GetDataHTML(HTMLParser):
 
         :param tag: The name of the closing tag.
         """
-        if tag in self.keeptags:
-            self.textdata += f'</{tag}>'
-        if tag in self.removetags and tag == self._skiptag:
-            self._skiptag = None
+        pass
 
 
 def isDisabled(text: str, index: int, tags=None) -> bool:
@@ -856,10 +832,6 @@ def replace_links(text: str, replace, site: pywikibot.site.BaseSite) -> str:
             return pywikibot.Link(source, site)
         return source
 
-    def replace_callable(link, text, groups, rng):
-        if replace_list[0] == link:
-            return replace_list[1]
-        return None
 
     def check_classes(replacement) -> None:
         """Normalize the replacement into a list."""
@@ -1108,8 +1080,7 @@ class Section(NamedTuple):
 
         .. version-added:: 8.2
         """
-        m = HEAD_PATTERN.match(self.title)
-        return len(m[1])
+        pass
 
     @property
     def heading(self) -> str:
@@ -1119,9 +1090,7 @@ class Section(NamedTuple):
         .. version-changed:: 11.0
            Invisible chars like LTR or RTO are removed.
         """
-        level = self.level
-        title = self.title[level:-level].strip()
-        return INVISIBLE_REGEX.sub('', title)
+        pass
 
 
 class SectionList(list):
@@ -2062,51 +2031,7 @@ def extract_templates_and_params(
     :return: List of template name and params
     :raises ModuleNotFoundError: No wikitext parser is installed.
     """
-    def explicit(param):
-        try:
-            attr = param.showkey
-        except AttributeError:
-            attr = not param.positional
-        return attr
-
-    if isinstance(wikitextparser, Exception):
-        raise wikitextparser
-
-    if remove_disabled_parts:
-        text = removeDisabledParts(text)
-
-    parser_name = wikitextparser.__name__
-    pywikibot.debug(f'Using {parser_name!r} wikitext parser')
-
-    result = []
-    parsed = wikitextparser.parse(text)
-    if parser_name == 'wikitextparser':
-        templates = parsed.templates
-        arguments = 'arguments'
-    else:
-        templates = parsed.ifilter_templates(
-            matches=lambda x: not x.name.lstrip().startswith('#'),
-            recursive=True)
-        arguments = 'params'
-
-    for template in templates:
-        params = OrderedDict()
-        for param in getattr(template, arguments):
-            value = str(param.value)  # mwpfh needs upcast to str
-
-            if strip:
-                key = param.name.strip()
-                if explicit(param):
-                    value = param.value.strip()
-                else:
-                    value = str(param.value)
-            else:
-                key = str(param.name)
-
-            params[key] = value
-
-        result.append((template.name.strip(), params))
-    return result
+    pass
 
 
 def extract_templates_and_params_regex_simple(text: str):
@@ -2152,12 +2077,7 @@ def glue_template_and_params(template_and_params) -> str:
     equivalent template wiki text (it may happen that the order of the
     params changes).
     """
-    template, params = template_and_params
-    text = ''
-    for items in params.items():
-        text += '|{}={}\n'.format(*items)
-
-    return f'{{{{{template}\n{text}}}}}'
+    pass
 
 
 # --------------------------
@@ -2177,12 +2097,7 @@ def does_text_contain_section(pagetext: str, section: str) -> bool:
     :param pagetext: The wikitext of a page
     :param section: A section of a page including wikitext markups
     """
-    # match preceding colon for text links
-    section = re.sub(r'\\\[\\\[(\\?:)?', r'\[\[\:?', re.escape(section))
-    # match underscores and white spaces
-    section = re.sub(r'\\?[ _]', '[ _]', section)
-    m = re.search(f"=+[ ']*{section}[ ']*=+", pagetext)
-    return bool(m)
+    pass
 
 
 def reformat_ISBNs(text: str, match_func) -> str:
@@ -2193,8 +2108,7 @@ def reformat_ISBNs(text: str, match_func) -> str:
     :type match_func: Callable
     :return: Reformatted text
     """
-    isbnR = re.compile(r'(?<=ISBN )(?P<code>[\d\-]+[\dXx])')
-    return isbnR.sub(match_func, text)
+    pass
 
 
 # ---------------------------------------
@@ -2307,55 +2221,12 @@ class TimeStripper:
 
         It does so to prevent spurious earlier matches.
         """
-        all_matches = list(pat.finditer(txt))
-        cnt = len(all_matches)
-
-        if not cnt:
-            return (txt, None)
-
-        m = all_matches[-1]
-
-        def marker(m: re.Match[str]):
-            """Replace exactly the same number of matched characters.
-
-            Same number of chars shall be replaced, in order to be able
-            to compare pos for matches reliably (absolute pos of a match
-            is not altered by replacement).
-            """
-            return '@' * (m.end() - m.start())
-
-        # month and day format might be identical (e.g. see bug T71315),
-        # avoid to wipe out day, after month is matched. Replace all matches
-        # but the last two (i.e. allow to search for dd. mm.)
-        if pat != self.patterns.month:
-            txt = pat.sub(marker, txt)
-        elif self.is_digit_month:
-            if cnt > 2:
-                txt = pat.sub(marker, txt, cnt - 2)
-        else:
-            txt = pat.sub(marker, txt)
-
-        return (txt, m)
+        pass
 
     @staticmethod
     def _valid_date_dict_positions(dateDict) -> bool:
         """Check consistency of reasonable positions for groups."""
-        time_pos = dateDict['time']['start']
-        tzinfo_pos = dateDict['tzinfo']['start']
-        date_pos = sorted(
-            (dateDict['day'], dateDict['month'], dateDict['year']),
-            key=lambda x: x['start'])
-        min_pos, max_pos = date_pos[0]['start'], date_pos[-1]['start']
-        max_gap = max(x[1]['start'] - x[0]['end']
-                      for x in zip(date_pos, date_pos[1:]))
-
-        if max_gap > TIMESTAMP_GAP_LIMIT:
-            return False
-        if tzinfo_pos < min_pos or tzinfo_pos < time_pos:
-            return False
-        if min_pos < tzinfo_pos < max_pos:
-            return False
-        return not min_pos < time_pos < max_pos
+        pass
 
     def timestripper(self, line: str) -> pywikibot.Timestamp | None:
         """Find timestamp in line and convert it to time zone aware datetime.
@@ -2368,104 +2239,7 @@ class TimeStripper:
 
         :return: A timestamp found on the given line
         """
-        # Try to maintain gaps that are used in _valid_date_dict_positions()
-        def censor_match(match):
-            return '_' * (match.end() - match.start())
-
-        # match date fields
-        dateDict = {}
-
-        # Analyze comments separately from rest of each line to avoid to skip
-        # dates in comments, as the date matched by timestripper is the
-        # rightmost one.
-        most_recent = []
-        for comment in self._comment_pat.finditer(line):
-            # Recursion levels can be maximum two. If a comment is found, it
-            # will not for sure be found in the next level.
-            # Nested comments are excluded by design.
-            timestamp = self.timestripper(comment[1])
-            most_recent.append(timestamp)
-
-        # Censor comments.
-        line = self._comment_pat.sub(censor_match, line)
-
-        # Censor external links.
-        line = self._hyperlink_pat.sub(censor_match, line)
-
-        for wikilink in self._wikilink_pat.finditer(line):
-            # Recursion levels can be maximum two. If a link is found, it will
-            # not for sure be found in the next level.
-            # Nested links are excluded by design.
-            link, anchor = wikilink['link'], wikilink['anchor']
-            timestamp = self.timestripper(link)
-            most_recent.append(timestamp)
-            if anchor:
-                timestamp = self.timestripper(anchor)
-                most_recent.append(timestamp)
-
-        # Censor wikilinks.
-        line = self._wikilink_pat.sub(censor_match, line)
-
-        # Remove parts that are not supposed to contain the timestamp, in order
-        # to reduce false positives.
-        line = removeDisabledParts(line)
-        line = removeHTMLParts(line)
-
-        line = to_ascii_digits(line)
-        for pat in self.patterns:
-            line, match_obj = self._last_match_and_replace(line, pat)
-            if match_obj:
-                for group, value in match_obj.groupdict().items():
-                    start, end = (match_obj.start(group), match_obj.end(group))
-                    # The positions are stored for later validation
-                    dateDict[group] = {
-                        'value': value, 'start': start, 'end': end
-                    }
-
-        # all fields matched -> date valid
-        # groups are in a reasonable order.
-        if (all(g in dateDict for g in TIMEGROUPS)
-                and self._valid_date_dict_positions(dateDict)):
-            # remove 'time' key, now split in hour/minute and not needed
-            # by datetime.
-            del dateDict['time']
-
-            # replace month name in original language with month number
-            try:
-                value = self.origNames2monthNum[dateDict['month']['value']]
-            except KeyError:
-                raise KeyError(
-                    f"incorrect month name {dateDict['month']['value']!r} "
-                    f'in page in site {self.site}'
-                )
-
-            dateDict['month']['value'] = value
-
-            # convert to integers and remove the inner dict
-            for k, v in dateDict.items():
-                if k == 'tzinfo':
-                    continue
-                try:
-                    dateDict[k] = int(v['value'])
-                except ValueError:
-                    raise ValueError(f"Value: {v['value']} could not be "
-                                     f'converted for key: {k}.')
-
-            # find timezone
-            dateDict['tzinfo'] = self.tzinfo
-
-            timestamp = pywikibot.Timestamp(**dateDict)
-        else:
-            timestamp = None
-
-        most_recent.append(timestamp)
-
-        try:
-            timestamp = max(ts for ts in most_recent if ts is not None)
-        except ValueError:
-            timestamp = None
-
-        return timestamp
+        pass
 
 
 wrapper = ModuleDeprecationWrapper(__name__)

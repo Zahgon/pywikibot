@@ -37,8 +37,4 @@ class Family(family.SubdomainFamily, family.WikimediaFamily):
     @classproperty
     def langs(cls):
         """Property listing family languages."""
-        cls.langs = super().langs
-        for lang, url in cls.langs.items():
-            if not url.startswith(cls.name):
-                cls.langs[lang] = cls.name + url
-        return cls.langs
+        pass

@@ -99,7 +99,7 @@ class Family:
         This is a placeholder to invoke allocator before it's allocated.
         Allocator will override this classproperty.
         """
-        return cls()
+        pass
 
     #: The family name
     name: str | None = None
@@ -328,7 +328,7 @@ class Family:
            use :meth:`site.has_extension('CategorySelect')
            <pywikibot.site._apisite.APISite.has_extension>` instead
         """
-        return []
+        pass
 
     @staticmethod
     def load(fam: str | None = None):
@@ -539,7 +539,7 @@ class Family:
 
     def querypath(self, code) -> str:
         """Return path to query.php."""
-        return f'{self.scriptpath(code)}/query.php'
+        pass
 
     def apipath(self, code) -> str:
         """Return path to api.php."""
@@ -698,7 +698,7 @@ class Family:
 
         .. version-deprecated:: 10.6
         """
-        return True
+        pass
 
     def post_get_convert(self, site, getText):
         """Do a conversion on the retrieved text from the Wiki.
@@ -706,7 +706,7 @@ class Family:
         For example a :wiki:`X-conversion in Esperanto
         <Esperanto_orthography#X-system>`.
         """
-        return getText
+        pass
 
     def pre_put_convert(self, site, putText):
         """Do a conversion on the text to insert on the Wiki.
@@ -714,7 +714,7 @@ class Family:
         For example a :wiki:`X-conversion in Esperanto
         <Esperanto_orthography#X-system>`.
         """
-        return putText
+        pass
 
     @property
     def obsolete(self) -> types.MappingProxyType[str, str | None]:
@@ -724,9 +724,7 @@ class Family:
 
         :return: Mapping of old codes to new codes (or None)
         """
-        data = dict.fromkeys(self.interwiki_removals)
-        data.update(self.code_aliases)
-        return types.MappingProxyType(data)
+        pass
 
     @classproperty
     def domains(cls) -> set[str]:
@@ -734,12 +732,12 @@ class Family:
 
         These domains may also exist in another family.
         """
-        return set(cls.langs.values())
+        pass
 
     @classproperty
     def codes(cls) -> set[str]:
         """Get list of codes used by this family."""
-        return set(cls.langs.keys())
+        pass
 
     @classproperty
     @deprecated('code_aliases', since='10.6.0')
@@ -756,7 +754,7 @@ class Family:
         .. version-changed:: 8.2
            changed from dict to invariant mapping.
         """
-        return types.MappingProxyType(cls.code_aliases)
+        pass
 
     @classproperty
     def interwiki_removals(cls) -> frozenset[str]:
@@ -768,7 +766,7 @@ class Family:
         .. version-changed:: 8.2
            changed from list to invariant frozenset.
         """
-        return frozenset(cls.removed_wikis + cls.closed_wikis)
+        pass
 
 
 class SingleSiteFamily(Family):
@@ -789,7 +787,7 @@ class SingleSiteFamily(Family):
     @classproperty
     def domains(cls):
         """Return the full domain name of the site."""
-        return (cls.domain, )
+        pass
 
     def hostname(self, code):
         """Return the domain as the hostname."""
@@ -808,24 +806,12 @@ class SubdomainFamily(Family):
     @classproperty
     def langs(cls) -> dict[str, str]:
         """Property listing family languages."""
-        codes = sorted(cls.codes)
-
-        if hasattr(cls, 'test_codes'):
-            codes += cls.test_codes
-
-        codes += cls.closed_wikis
-
-        # shortcut this classproperty
-        cls.langs = {code: f'{code}.{cls.domain}' for code in codes}
-        cls.langs.update({alias: f'{code}.{cls.domain}'
-                          for alias, code in cls.code_aliases.items()})
-
-        return cls.langs
+        pass
 
     @classproperty
     def domains(cls):
         """Return the domain name of the sites in this family."""
-        return [cls.domain]
+        pass
 
 
 class FandomFamily(Family):
@@ -839,12 +825,7 @@ class FandomFamily(Family):
     @classproperty
     def langs(cls):
         """Property listing family languages."""
-        codes = sorted(cls.codes)
-
-        if hasattr(cls, 'code_aliases'):
-            codes += cls.code_aliases
-
-        return dict.fromkeys(codes, cls.domain)
+        pass
 
     def scriptpath(self, code):
         """Return the script path for this family."""
@@ -999,14 +980,7 @@ class WikimediaFamily(Family):
     @classproperty
     def domain(cls):
         """Domain property."""
-        if cls.name in (cls.multi_language_content_families
-                        + cls.other_content_families):
-            return cls.name + '.org'
-        if cls.name in cls.wikimedia_org_families:
-            return 'wikimedia.org'
-
-        raise NotImplementedError(
-            f"Family {cls.name} needs to define property 'domain'")
+        pass
 
     def shared_image_repository(self, code):
         """Return Wikimedia Commons as the shared image repository."""
@@ -1014,11 +988,11 @@ class WikimediaFamily(Family):
 
     def eventstreams_host(self, code) -> str:
         """Return 'https://stream.wikimedia.org' as the stream hostname."""
-        return 'https://stream.wikimedia.org'
+        pass
 
     def eventstreams_path(self, code) -> str:
         """Return path for EventStreams."""
-        return '/v2/stream'
+        pass
 
     @property
     def languages_by_size(self) -> list[str]:
@@ -1032,30 +1006,7 @@ class WikimediaFamily(Family):
         :raises NotImplementedError: Family is not member of
             :attr:`multi_language_content_families`
         """
-        if self.name not in self.multi_language_content_families:
-            raise NotImplementedError(
-                f'languages_by_size is not implemented for {self.name} family')
-
-        exceptions = {
-            'wikiversity': ['beta']
-        }
-
-        ws = wikistats.WikiStats()
-        table = ws.languages_by_size(self.name)
-        assert type(self.obsolete).__name__ == 'mappingproxy', (
-            f'obsolete attribute is of type {type(self.obsolete).__name__} but'
-            ' mappingproxy was expected'
-        )
-
-        lbs = [
-            code for code in table
-            if not (code in self.obsolete
-                    or code in exceptions.get(self.name, []))
-        ]
-
-        # add codes missing by wikistats
-        missing = set(self.codes) - set(lbs)
-        return lbs + list(missing)
+        pass
 
 
 class WikimediaOrgFamily(SingleSiteFamily, WikimediaFamily):
@@ -1065,7 +1016,7 @@ class WikimediaOrgFamily(SingleSiteFamily, WikimediaFamily):
     @classproperty
     def domain(cls) -> str:
         """Return the parents domain with a subdomain prefix."""
-        return f'{cls.name}.wikimedia.org'
+        pass
 
 
 class WikibaseFamily(Family):
@@ -1115,12 +1066,12 @@ class DefaultWikibaseFamily(WikibaseFamily):
     @property
     def interval_start_property(self) -> str:
         """Return the property for the start of an interval."""
-        return 'P580'
+        pass
 
     @property
     def interval_end_property(self) -> str:
         """Return the property for the end of an interval."""
-        return 'P582'
+        pass
 
     def calendarmodel(self, code) -> str:
         """Default calendar model for WbTime datatype."""

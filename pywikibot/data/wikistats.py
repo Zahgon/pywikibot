@@ -109,7 +109,7 @@ class WikiStats:
 
         :param table: table of data to fetch
         """
-        return {data['prefix']: data for data in self.get(table)}
+        pass
 
     def sorted(self, table: str, key: str,
                reverse: bool | None = None) -> list:
@@ -122,20 +122,8 @@ class WikiStats:
             alphanumeric keys are sorted in normal way.
         :return: The sorted table
         """
-        data = self.get(table)
-
-        # take the first entry to determine the sorting key
-        first_entry = data[0]
-        if first_entry[key].isdigit():
-            def sort_key(d): return int(d[key])
-            reverse = reverse if reverse is not None else True
-        else:
-            def sort_key(d): return d[key]
-            reverse = reverse if reverse is not None else False
-
-        return sorted(data, key=sort_key, reverse=reverse)
+        pass
 
     def languages_by_size(self, table: str):
         """Return ordered list of languages by size from WikiStats."""
-        # This assumes they appear in order of size in the WikiStats dump.
-        return [d['prefix'] for d in self.get(table)]
+        pass

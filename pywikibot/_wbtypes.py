@@ -167,17 +167,7 @@ class Coordinate(WbRepresentation):
         :raises CoordinateGlobeUnknownError: The globe is not supported
             by Wikibase
         """
-        if not self._entity:
-            if self.globe not in self.site.globes():
-                raise exceptions.CoordinateGlobeUnknownError(
-                    f'{self.globe} is not supported in Wikibase yet.')
-
-            return self.site.globes()[self.globe]
-
-        if isinstance(self._entity, pywikibot.ItemPage):
-            return self._entity.concept_uri()
-
-        return self._entity
+        pass
 
     def toWikibase(self) -> dict[str, Any]:
         """Export the data to a JSON object for the Wikibase API.
@@ -251,18 +241,7 @@ class Coordinate(WbRepresentation):
 
         :return: Precision in degrees or None
         """
-        if self._precision is not None:
-            return self._precision
-
-        if self._dim is None:
-            return None
-
-        radius = 6378137  # Earth radius in meters (TODO: support other globes)
-        with suppress(ZeroDivisionError):
-            self._precision = math.degrees(
-                self._dim / (radius * math.cos(math.radians(self.lat))))
-
-        return self._precision
+        pass
 
     @precision.setter
     def precision(self, value: float) -> None:
@@ -270,7 +249,7 @@ class Coordinate(WbRepresentation):
 
         :param value: Precision in degrees
         """
-        self._precision = value
+        pass
 
     def precisionToDim(self) -> int | None:
         """Convert precision from Wikibase to GeoData's dim.
@@ -306,20 +285,7 @@ class Coordinate(WbRepresentation):
         :return: Dimension in meters
         :raises ValueError: If neither *dim* nor *precision* is set
         """
-        if self._dim is not None:
-            return self._dim
-
-        if self._precision is None:
-            raise ValueError('No values set for dim or precision')
-
-        radius = 6378137
-        self._dim = int(
-            round(
-                math.radians(self._precision) * radius * math.cos(
-                    math.radians(self.lat))
-            )
-        )
-        return self._dim
+        pass
 
     @deprecated_signature(since='10.4.0')
     def get_globe_item(self, repo: DataSite | None = None, *,
@@ -341,11 +307,7 @@ class Coordinate(WbRepresentation):
             ItemPage does not exist
         :return: :class:`pywikibot.ItemPage` of the globe
         """
-        if isinstance(self._entity, pywikibot.ItemPage):
-            return self._entity
-
-        repo = repo or self.site
-        return pywikibot.ItemPage.from_entity_uri(repo, self.entity, lazy_load)
+        pass
 
 
 class _Precision(Mapping):
@@ -566,33 +528,7 @@ class WbTime(WbRepresentation):
         :return: An integer roughly representing the number of seconds
             since January 1, 0000 AD, adjusted for leap years.
         """
-        # This function ignores leap seconds. Since it is not required
-        # to correlate to an actual UNIX timestamp, this is acceptable.
-
-        # We are always required to have a year.
-        elapsed_seconds = int(self.year * 365.25 * 24 * 60 * 60)
-        if self.month > 1:
-            elapsed_seconds += self._month_offset[self.month] * 24 * 60 * 60
-            # The greogrian calendar
-            if (self.calendarmodel == 'http://www.wikidata.org/entity/Q1985727'
-                and (self.year % 400 == 0
-                     or (self.year % 4 == 0 and self.year % 100 != 0)
-                     and self.month > 2)):
-                elapsed_seconds += 24 * 60 * 60  # Leap year
-            # The julian calendar
-            if (self.calendarmodel == 'http://www.wikidata.org/entity/Q1985786'
-                    and self.year % 4 == 0 and self.month > 2):
-                elapsed_seconds += 24 * 60 * 60
-        if self.day > 1:
-            # Days start at 1, not 0.
-            elapsed_seconds += (self.day - 1) * 24 * 60 * 60
-        elapsed_seconds += self.hour * 60 * 60
-        elapsed_seconds += self.minute * 60
-        elapsed_seconds += self.second
-        if self.timezone is not None:
-            # See T325866
-            elapsed_seconds -= self.timezone * 60
-        return elapsed_seconds
+        pass
 
     def __lt__(self, other: object) -> bool:
         """Compare if self is less than other.
@@ -643,7 +579,7 @@ class WbTime(WbRepresentation):
 
         .. version-added:: 9.0
         """
-        return self._getSecondsAdjusted() == other._getSecondsAdjusted()
+        pass
 
     @classmethod
     @deprecated_signature(since='10.4.0')
@@ -736,11 +672,7 @@ class WbTime(WbRepresentation):
             to maintain backwards compatibility. If a timezone is given,
             timezone information is discarded.
         """
-        if not timezone and timestamp.tzinfo and copy_timezone:
-            timezone = int(timestamp.utcoffset().total_seconds() / 60)
-        return cls.fromTimestr(timestamp.isoformat(), precision=precision,
-                               before=before, after=after, timezone=timezone,
-                               calendarmodel=calendarmodel, site=site)
+        pass
 
     @staticmethod
     def _normalize_millennium(year: int) -> int:
@@ -755,15 +687,7 @@ class WbTime(WbRepresentation):
         :return: The first year of the millennium containing the given
             year.
         """
-        # For negative years, floor rounds away from zero to correctly handle
-        # BCE dates. For positive years, ceil rounds up to the next
-        # millennium/century.
-        year_float = year / 1000
-        if year_float < 0:
-            year = math.floor(year_float)
-        else:
-            year = math.ceil(year_float)
-        return year * 1000
+        pass
 
     @staticmethod
     def _normalize_century(year: int) -> int:
@@ -777,14 +701,7 @@ class WbTime(WbRepresentation):
         :param year: The year as an integer.
         :return: The first year of the century containing the given year.
         """
-        # For century, -1301 is the same century as -1400 but not -1401.
-        # Similar for 1901 and 2000 vs 2001.
-        year_float = year / 100
-        if year_float < 0:
-            year = math.floor(year_float)
-        else:
-            year = math.ceil(year_float)
-        return year * 100
+        pass
 
     @staticmethod
     def _normalize_decade(year: int) -> int:
@@ -798,11 +715,7 @@ class WbTime(WbRepresentation):
         :param year: The year as an integer.
         :return: The first year of the decade containing the given year.
         """
-        # For decade, -1340 is the same decade as -1349 but not -1350.
-        # Similar for 2010 and 2019 vs 2020
-        year_float = year / 10
-        year = math.trunc(year_float)
-        return year * 10
+        pass
 
     @staticmethod
     def _normalize_power_of_ten(year: int, precision: int) -> int:
@@ -906,14 +819,7 @@ class WbTime(WbRepresentation):
         :raises ValueError: Instance value cannot be represented using
             Timestamp
         """
-        if self.year <= 0:
-            raise ValueError('You cannot turn BC dates into a Timestamp')
-        ts = Timestamp.fromISOformat(
-            self.toTimestr(force_iso=True).lstrip('+'))
-        if timezone_aware:
-            ts = ts.replace(tzinfo=datetime.timezone(
-                datetime.timedelta(minutes=self.timezone)))
-        return ts
+        pass
 
     def toWikibase(self) -> dict[str, Any]:
         """Convert the data to a JSON object for the Wikibase API.
@@ -1029,9 +935,7 @@ class WbQuantity(WbRepresentation):
     @property
     def unit(self) -> str:
         """Return _unit's entity uri or '1' if _unit is None."""
-        if isinstance(self._unit, pywikibot.ItemPage):
-            return self._unit.concept_uri()
-        return self._unit or '1'
+        pass
 
     def get_unit_item(self, repo: DataSite | None = None,
                       lazy_load: bool = False) -> pywikibot.ItemPage:
@@ -1049,13 +953,7 @@ class WbQuantity(WbRepresentation):
             exist.
         :return: :class:`pywikibot.ItemPage`
         """
-        if not isinstance(self._unit, str):
-            return self._unit
-
-        repo = repo or self.site
-        self._unit = pywikibot.ItemPage.from_entity_uri(
-            repo, self._unit, lazy_load)
-        return self._unit
+        pass
 
     def toWikibase(self) -> dict[str, Any]:
         """Convert the data to a JSON object for the Wikibase API.

@@ -43,15 +43,7 @@ class SequenceOutputter:
     @property
     def out(self):
         """Create the text with one item on each line."""
-        if self.sequence:
-            # Width is only defined when the length is greater 0
-            width = int(math.log10(len(self.sequence))) + 1
-            content = self.separator.join(
-                self.format_string.format(index=i, item=item, width=width)
-                for i, item in enumerate(self.sequence, start=1))
-        else:
-            content = ''
-        return self.prefix + content + self.suffix
+        pass
 
     @deprecated('pywikibot.info(SequenceOutputter.out)', since='9.0.0')
     def output(self) -> None:

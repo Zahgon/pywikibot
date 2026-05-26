@@ -81,29 +81,14 @@ class DjVuFile:
 
     def check_cache(fn):
         """Decorator to check if cache shall be cleared."""
-        cache = ['_page_count', '_has_text', '_page_info']
-
-        def wrapper(obj, *args, **kwargs):
-            force = kwargs.get('force', False)
-            if force:
-                for el in cache:
-                    obj.__dict__.pop(el, None)
-            return fn(obj, *args, **kwargs)
-        return wrapper
+        pass
 
     def check_page_number(fn):
         """Decorator to check if page number is valid.
 
         :raises ValueError
         """
-        def wrapper(obj, *args, **kwargs):
-            n = args[0]
-            force = kwargs.get('force', False)
-            if not 1 <= n <= obj.number_of_images(force=force):
-                raise ValueError(f'Page {int(n)} not in file {obj.file} '
-                                 f'[{int(n)}-{int(obj.number_of_images())}]')
-            return fn(obj, *args, **kwargs)
-        return wrapper
+        pass
 
     @check_cache
     def number_of_images(self, force: bool = False):
@@ -125,9 +110,7 @@ class DjVuFile:
         :param n: Page n of djvu file
         :param force: If True, refresh the cached data
         """
-        if not hasattr(self, '_page_info') or force:
-            self._get_page_info(force=force)
-        return self._page_info[n]
+        pass
 
     @check_cache
     def _get_page_info(self, force: bool = False):
@@ -172,9 +155,7 @@ class DjVuFile:
 
     def get_most_common_info(self):
         """Return most common size and dpi for pages in djvu file."""
-        cnt = Counter(s_d for _, s_d in self._get_page_info().values())
-        (size, dpi), _ = cnt.most_common()[0]
-        return size, dpi
+        pass
 
     @check_cache
     def has_text(self, force: bool = False):
@@ -228,49 +209,7 @@ class DjVuFile:
 
         :param n: Page n of djvu file
         """
-        # tmp files for creation/insertion of a white page.
-        white_ppm = os.path.join(self.dirname, 'white_page.ppm')
-        white_djvu = os.path.join(self.dirname, 'white_page.djvu')
-
-        n_tot = self.number_of_images()
-
-        # Check n is in valid range and set ref_page number for final checks.
-        ref_page = 2 if n == 1 else n - 1
-
-        size, dpi = self.get_most_common_info()
-
-        # Generate white_page.
-        res, _ = _call_cmd(['convert', '-size', size, 'xc:white', white_ppm],
-                           lib='ImageMagik')
-        if not res:
-            return False
-
-        # Convert white_page to djvu.
-        res, _ = _call_cmd(['c44', white_ppm, '-dpi', str(dpi)])
-        os.unlink(white_ppm)  # rm white_page.ppm before returning.
-        if not res:
-            return False
-
-        # Delete page n.
-        # Get ref page info for later checks.
-        info_ref_page = self.page_info(ref_page)
-        res, _ = _call_cmd(['djvm', '-d', self.file, str(n)])
-        if not res:
-            return False
-
-        # Insert new page
-        res, _ = _call_cmd(['djvm', '-i', self.file, white_djvu, str(n)])
-        os.unlink(white_djvu)  # rm white_page.djvu before returning.
-        if not res:
-            return False
-
-        # Check if page processing is as expected.
-        expected_id = '{%s}' % os.path.basename(white_djvu)
-        assert self.number_of_images(force=True) == n_tot
-        assert self.page_info(n) == (expected_id, (size, dpi))  # white page id
-        assert self.page_info(ref_page) == info_ref_page  # ref page info.
-
-        return True
+        pass
 
     @check_page_number
     def delete_page(self, n: int) -> bool:
@@ -278,31 +217,7 @@ class DjVuFile:
 
         :param n: Page n of djvu file
         """
-        n_tot = self.number_of_images()
-
-        # Check n is in valid range and set ref_page number for final checks.
-        ref_page = n - 1 if n == n_tot else n + 1
-        new_ref_page = n - 1 if n == n_tot else n
-
-        # Delete page n.
-        # Get ref page info for later checks.
-        info_ref_page = self.page_info(ref_page)
-        res, _ = _call_cmd(['djvm', '-d', self.file, str(n)])
-        if not res:
-            return False
-
-        # Check if page processing is as expected.
-        # ref page info.
-        if n_tot > 2:
-            assert self.number_of_images(force=True) == n_tot - 1
-            # cache cleared above
-            assert self.page_info(new_ref_page) == info_ref_page
-        else:
-            # If djvu has only one page, FORM:DJVU line in djvudump has no id
-            _id, (sz, dpi) = info_ref_page
-            assert self.page_info(new_ref_page, force=True) == ('', (sz, dpi))
-
-        return True
+        pass
 
     # This is to be used only if this class is subclassed and the decorators
     # needs to be used by the child.

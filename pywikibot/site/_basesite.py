@@ -146,7 +146,7 @@ class BaseSite(ComparableMixin):
         By convention, this is usually an ISO language code, but it does
         not have to be.
         """
-        return self.__code
+        pass
 
     @property
     def lang(self):
@@ -155,33 +155,13 @@ class BaseSite(ComparableMixin):
         Presumed to be equal to the site code, but this can be
         overridden.
         """
-        return self.__code
+        pass
 
     @property
     @cached
     def doc_subpage(self) -> tuple:
         """Return the documentation subpage for this Site."""
-        try:
-            doc, codes = self.family.doc_subpages.get('_default', ((), []))
-            if self.code not in codes:
-                try:
-                    doc = self.family.doc_subpages[self.code]
-                # Language not defined in doc_subpages in x_family.py file
-                # It will use default for the family.
-                # should it just raise an Exception and fail?
-                # this will help to check the dictionary ...
-                except KeyError:
-                    warn(f'Site {self} has no language defined in '
-                         f'doc_subpages dict in {self.family.name}_family.py '
-                         'file', FamilyMaintenanceWarning, 2)
-        # doc_subpages not defined in x_family.py file
-        except AttributeError:
-            doc = ()  # default
-            warn(f'Site {self} has no doc_subpages dict in '
-                 f'{self.family.name}_family.py file',
-                 FamilyMaintenanceWarning, 2)
-
-        return doc
+        pass
 
     def _cmpkey(self):
         """Perform equality and inequality tests on Site objects."""
@@ -246,7 +226,7 @@ class BaseSite(ComparableMixin):
     @property
     def sitename(self):
         """String representing this Site's name and code."""
-        return str(self)
+        pass
 
     def __repr__(self) -> str:
         """Return internal representation."""
@@ -263,7 +243,7 @@ class BaseSite(ComparableMixin):
         .. version-deprecated:: 9.6
            Use :meth:`codes` instead.
         """
-        return sorted(self.codes)
+        pass
 
     @property
     def codes(self) -> set[str]:
@@ -272,7 +252,7 @@ class BaseSite(ComparableMixin):
         .. version-added:: 9.6
         .. seealso:: :attr:`family.Family.codes`
         """
-        return set(self.family.langs.keys())
+        pass
 
     def validLanguageLinks(self):  # noqa: N802
         """Return list of language codes to be used in interwiki links."""
@@ -303,8 +283,7 @@ class BaseSite(ComparableMixin):
 
         :param value: A namespace name
         """
-        index = self.namespaces.lookup_name(value)
-        return self.namespace(index)
+        pass
 
     def redirect(self) -> str:
         """Return a default redirect tag for the site.
@@ -325,11 +304,11 @@ class BaseSite(ComparableMixin):
 
     def pagenamecodes(self) -> list[str]:
         """Return list of localized PAGENAME tags for the site."""
-        return ['PAGENAME']
+        pass
 
     def pagename2codes(self) -> list[str]:
         """Return list of localized PAGENAMEE tags for the site."""
-        return ['PAGENAMEE']
+        pass
 
     def lock_page(self, page, block: bool = True) -> None:
         """Lock page for writing. Must be called before writing any page.
@@ -413,9 +392,7 @@ class BaseSite(ComparableMixin):
         .. version-added:: 8.4
            moved from class:`APISite<pywikibot.site._apisite.APISite>`
         """
-        tags = '|'.join(self.redirects())
-        return re.compile(fr'\s*#(?:{tags})\s*:?\s*\[\[(.+?)(?:\|.*?)?\]\]',
-                          re.IGNORECASE | re.DOTALL)
+        pass
 
     def sametitle(self, title1: str, title2: str) -> bool:
         """Return True if title1 and title2 identify the same wiki page.

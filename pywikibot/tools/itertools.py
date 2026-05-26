@@ -92,8 +92,7 @@ def union_generators(*iterables: Iterable[Any],
         order.
     :return: Generator yielding all unique items in sorted order.
     """
-    merged = heapq.merge(*iterables, key=key, reverse=reverse)
-    return (list(group)[0] for _, group in itertools.groupby(merged, key=key))
+    pass
 
 
 def intersect_generators(*iterables, allow_duplicates: bool = False):
@@ -265,14 +264,9 @@ def filter_unique(iterable, container=None, key=None, add=None):
 
     if not add:
         if hasattr(container, 'add'):
-            def container_add(x) -> None:
-                container.add(key(x) if key else x)
 
             add = container_add
         else:
-            def container_setitem(x) -> None:
-                container.__setitem__(key(x) if key else x,
-                                      True)
 
             add = container_setitem
 

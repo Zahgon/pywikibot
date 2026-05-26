@@ -169,14 +169,7 @@ class APISite(
         :param site: The targeted site, which might be it's own.
         :raises KeyError: If there is no interwiki prefix for that site.
         """
-        assert site is not None, 'Site must not be None'
-        prefixes = set()
-        for url in site._interwiki_urls():
-            prefixes.update(self._interwikimap.get_by_url(url))
-        if not prefixes:
-            raise KeyError(
-                f"There is no interwiki prefix to '{site}'")
-        return sorted(prefixes, key=lambda p: (len(p), p))
+        pass
 
     def local_interwiki(self, prefix: str) -> bool:
         """Return whether the interwiki prefix is local.
@@ -490,10 +483,7 @@ class APISite(
         .. version-changed:: 9.2
            also include extensions from the image repository
         """
-        ext = self.siteinfo.get('fileextensions')
-        if self.has_image_repository:
-            ext.extend(self.image_repository().siteinfo.get('fileextensions'))
-        return sorted({e['ext'] for e in ext})
+        pass
 
     @property
     def maxlimit(self) -> int:
@@ -501,12 +491,7 @@ class APISite(
 
         .. version-added:: 7.0
         """
-        parameter = self._paraminfo.parameter('query+info', 'prop')
-        assert parameter is not None
-        if self.logged_in() and self.has_right('apihighlimits'):
-            return int(parameter['highlimit'])
-
-        return int(parameter['limit'])  # T78333, T161783
+        pass
 
     def ratelimit(self, action: str) -> RateLimit:
         """Get the rate limit for a given action.
@@ -660,23 +645,7 @@ class APISite(
           - messages: True if user has a new message on talk page (bool)
           - blockinfo: present if user is blocked (dict)
         """
-        if not hasattr(self, '_userinfo'):
-            uirequest = self.simple_request(
-                action='query',
-                meta='userinfo',
-                uiprop='blockinfo|hasmsg|groups|rights|ratelimits',
-                formatversion=2,
-            )
-            uidata = uirequest.submit()
-            assert 'query' in uidata, \
-                   "API userinfo response lacks 'query' key"
-            assert 'userinfo' in uidata['query'], \
-                   "API userinfo response lacks 'userinfo' key"
-            self._userinfo = uidata['query']['userinfo']
-            if self._loginstatus != login.LoginStatus.IN_PROGRESS \
-               and ('anon' in self._userinfo or not self._userinfo.get('id')):
-                pywikibot.warning(f'No user is logged in on site {self}')
-        return self._userinfo
+        pass
 
     @userinfo.deleter
     def userinfo(self) -> None:
@@ -684,8 +653,7 @@ class APISite(
 
         .. version-added:: 5.5
         """
-        if hasattr(self, '_userinfo'):
-            del self._userinfo
+        pass
 
     def get_globaluserinfo(self,
                            user: str | int | None = None,
@@ -748,7 +716,7 @@ class APISite(
 
         .. version-added:: 3.0
         """
-        return self.get_globaluserinfo()
+        pass
 
     @globaluserinfo.deleter
     def globaluserinfo(self) -> None:
@@ -756,10 +724,7 @@ class APISite(
 
         .. version-added:: 7.0
         """
-        username = self.username()
-        assert username is not None
-        with suppress(KeyError):
-            del self._globaluserinfo[username]
+        pass
 
     def is_blocked(self, force: bool = False) -> bool:
         """Return True when logged in user is blocked.
@@ -794,9 +759,7 @@ class APISite(
 
         :param force: If True, forces reloading the data from API
         """
-        if force:
-            del self.userinfo
-        return 'partial' in self.userinfo.get('blockinfo', {})
+        pass
 
     def is_locked(self,
                   user: str | int | None = None,
@@ -826,27 +789,7 @@ class APISite(
         :param force: Whether the cache should be discarded.
         :return: The namespaces which are searched by default.
         """
-        # TODO: Integrate into _userinfo
-        if (force or not hasattr(self, '_useroptions')
-                or self.user() != self._useroptions['_name']):
-            uirequest = self.simple_request(
-                action='query',
-                meta='userinfo',
-                uiprop='options'
-            )
-            uidata = uirequest.submit()
-            assert 'query' in uidata, \
-                   "API userinfo response lacks 'query' key"
-            assert 'userinfo' in uidata['query'], \
-                   "API userinfo response lacks 'userinfo' key"
-            self._useroptions: dict[str, Any] = uidata['query']['userinfo']['options']  # noqa: E501
-            # To determine if user name has changed
-            self._useroptions['_name'] = (
-                None if 'anon' in uidata['query']['userinfo'] else
-                uidata['query']['userinfo']['name'])
-        return {ns for ns in self.namespaces.values() if ns.id >= 0
-                and self._useroptions[f'searchNs{ns.id}']
-                in ['1', True]}
+        pass
 
     @property
     def articlepath(self) -> str:
@@ -863,11 +806,7 @@ class APISite(
 
         :raises ValueError: Missing "$1" placeholder
         """
-        path = self.siteinfo['articlepath']
-        if '$1' not in path:
-            raise ValueError(
-                f'Invalid article path "{path}": missing "$1" placeholder')
-        return path.replace('$1', '{}')
+        pass
 
     @cached
     def linktrail(self) -> str:
@@ -1062,23 +1001,7 @@ class APISite(
 
         :return: List of tuples (month name, abbreviation)
         """
-        if hasattr(self, '_months_names'):
-            return self._months_names
-
-        months_long = ['january', 'february', 'march',
-                       'april', 'may_long', 'june',
-                       'july', 'august', 'september',
-                       'october', 'november', 'december']
-        months_short = ['jan', 'feb', 'mar', 'apr', 'may', 'jun',
-                        'jul', 'aug', 'sep', 'oct', 'nov', 'dec']
-
-        months = self.mediawiki_messages(months_long + months_short)
-
-        self._months_names: list[tuple[str, str]] = []
-        for m_l, m_s in zip(months_long, months_short):
-            self._months_names.append((months[m_l], months[m_s]))
-
-        return self._months_names
+        pass
 
     def list_to_text(self, args: Iterable[str]) -> str:
         """Convert a list of strings into human-readable text.
@@ -1090,20 +1013,7 @@ class APISite(
 
         :param args: Text to be expanded
         """
-        needed_mw_messages = ('and', 'comma-separator', 'word-separator')
-        if not args:
-            return ''
-
-        try:
-            msgs = self.mediawiki_messages(needed_mw_messages)
-        except KeyError:
-            raise NotImplementedError(
-                f'MediaWiki messages missing: {needed_mw_messages}')
-
-        args = list(args)
-        concat = msgs['and'] + msgs['word-separator']
-        return msgs['comma-separator'].join(
-            args[:-2] + [concat.join(args[-2:])])
+        pass
 
     def expand_text(
         self,
@@ -1145,7 +1055,7 @@ class APISite(
 
         :return: The server time (as 'yyyymmddhhmmss')
         """
-        return self.server_time().totimestampformat()
+        pass
 
     def server_time(self) -> pywikibot.Timestamp:
         """Return a Timestamp object representing the current server time.
@@ -1184,11 +1094,11 @@ class APISite(
 
     def pagenamecodes(self) -> list[str]:
         """Return list of localized PAGENAME tags for the site."""
-        return self.getmagicwords('pagename')
+        pass
 
     def pagename2codes(self) -> list[str]:
         """Return list of localized PAGENAMEE tags for the site."""
-        return self.getmagicwords('pagenamee')
+        pass
 
     def _build_namespaces(self) -> dict[int, Namespace]:
         _namespaces = {}
@@ -1237,7 +1147,7 @@ class APISite(
     @property
     def siteinfo(self) -> Siteinfo:
         """Site information dict."""
-        return self._siteinfo
+        pass
 
     def dbName(self) -> str:  # noqa: N802
         """Return this site's internal id."""
@@ -1246,7 +1156,7 @@ class APISite(
     @property
     def lang(self) -> str:
         """Return the code for the language of this Site."""
-        return self.siteinfo['lang']
+        pass
 
     def version(self) -> str:
         """Return live project version number as a string.
@@ -1275,25 +1185,17 @@ class APISite(
 
         Cache the result for 24 hours.
         """  # noqa: D205, D400
-        mw_ver, cache_time = getattr(self, '_mw_version_time', (None, None))
-        if (
-            mw_ver is None
-            or cache_time is None
-            or time.time() - cache_time > 60 * 60 * 24
-        ):
-            mw_ver = MediaWikiVersion(self.version())
-            self._mw_version_time = mw_ver, time.time()
-        return mw_ver
+        pass
 
     @property
     def has_image_repository(self) -> bool:
         """Return True if site has a shared image repository like Commons."""
-        return self.image_repository() is not None
+        pass
 
     @property
     def has_data_repository(self) -> bool:
         """Return True if site has a shared data repository like Wikidata."""
-        return self.data_repository() is not None
+        pass
 
     def image_repository(self) -> BaseSite | None:
         """Return Site object for image repository e.g. commons."""
@@ -1309,13 +1211,6 @@ class APISite(
         :return: The data repository if one is connected or None
             otherwise.
         """
-        def handle_warning(
-            mod: str,
-            warning: str
-        ) -> re.Match[str] | bool | None:
-            return (mod == 'query' and re.match(
-                r'Unrecognized value for parameter [\'"]meta[\'"]: wikibase',
-                warning))
 
         req = self._request(
             expiry=7, parameters={'action': 'query', 'meta': 'wikibase'})
@@ -1337,7 +1232,7 @@ class APISite(
 
     def is_image_repository(self) -> bool:
         """Return True if Site object is the image repository."""
-        return self is self.image_repository()
+        pass
 
     def is_data_repository(self) -> bool:
         """Return True if its data repository is itself."""
@@ -1410,8 +1305,7 @@ class APISite(
 
     def nice_get_address(self, title: str) -> str:
         """Return shorter URL path to retrieve page titled 'title'."""
-        # 'title' is expected to be URL-encoded already
-        return self.siteinfo['articlepath'].replace('$1', title)
+        pass
 
     @deprecate_arg('all', 'all_ns')  # since 9.0
     def namespace(self, num: int, all_ns: bool = False) -> str | Namespace:
@@ -1753,24 +1647,7 @@ class APISite(
             API documentation for full list of types.
         :return: A dict with retrieved valid tokens.
         """
-        if not types:  # load all
-            pdata = self._paraminfo.parameter('query+tokens', 'type')
-            assert pdata is not None
-            types = pdata['type']
-
-        req = self.simple_request(action='query', meta='tokens',
-                                  type=types, formatversion=2)
-
-        data = req.submit()
-        data = data.get('query', data)
-
-        user_tokens = {}
-        if data.get('tokens'):
-            user_tokens = {key.removesuffix('token'): val
-                           for key, val in data['tokens'].items()
-                           if val != '+\\'}
-
-        return user_tokens
+        pass
 
     @property
     def tokens(self) -> pywikibot.site._tokenwallet.TokenWallet:
@@ -1808,12 +1685,12 @@ class APISite(
            outdated, see :api:`Tokens (action)`.
         .. seealso:: :api:`Tokens` for valid token types
         """
-        return self._tokens
+        pass
 
     @tokens.deleter
     def tokens(self) -> None:
         """Deleter method to clear the TokenWallet collection."""
-        self._tokens.clear()
+        pass
 
     # TODO: expand support to other parameters of action=parse?
     def get_parsed_page(self, page: BasePage) -> str:
@@ -1826,37 +1703,21 @@ class APISite(
            - :api:`Parse`
            - :meth:`page.BasePage.get_parsed_page`.
         """
-        req = self.simple_request(action='parse', page=page)
-        data = req.submit()
-        try:
-            parsed_text = data['parse']['text']['*']
-        except KeyError as e:
-            raise KeyError(f'API parse response lacks {e} key')
-        return parsed_text
+        pass
 
     def getcategoryinfo(self, category: pywikibot.page.Category) -> None:
         """Retrieve data on contents of category.
 
         .. seealso:: :api:`Categoryinfo`
         """
-        cititle = category.title(with_section=False)
-        ciquery = self._generator(api.PropertyGenerator,
-                                  type_arg='categoryinfo',
-                                  titles=cititle.encode(self.encoding()))
-        self._update_page(category, ciquery)
+        pass
 
     def categoryinfo(
         self,
         category: pywikibot.page.Category
     ) -> dict[str, int]:
         """Retrieve data on contents of category."""
-        if not hasattr(category, '_catinfo'):
-            self.getcategoryinfo(category)
-        if not hasattr(category, '_catinfo'):
-            # a category that exists but has no contents returns no API result
-            category._catinfo = {'size': 0, 'pages': 0, 'files': 0,
-                                 'subcats': 0}
-        return category._catinfo
+        pass
 
     def isBot(self, username: str) -> bool:  # noqa: N802
         """Return True is username is a bot user."""
@@ -1865,9 +1726,7 @@ class APISite(
     @property
     def logtypes(self) -> set[str]:
         """Return a set of log types available on current site."""
-        data = self._paraminfo.parameter('query+logevents', 'type')
-        assert data is not None
-        return set(filter(None, data['type']))
+        pass
 
     @need_right('deleterevision')
     def deleterevs(
@@ -1899,49 +1758,7 @@ class APISite(
         :param reason: Deletion reason.
         :param target: Page object or page title, if required for the type.
         """
-        if isinstance(target, pywikibot.Page):
-            page = target
-            target = page.title()
-        elif target:
-            page = pywikibot.Page(self, target)
-
-        token = self.tokens['csrf']
-        params = {
-            'action': 'revisiondelete',
-            'token': token,
-            'type': targettype,
-            'ids': ids,
-            'hide': hide,
-            'show': show,
-            'target': target,
-            'reason': reason}
-
-        req = self.simple_request(**params)
-
-        if target:
-            self.lock_page(page)
-
-        try:
-            req.submit()
-        except APIError as err:
-            errdata = {
-                'site': self,
-                'title': target,
-                'user': self.user(),
-            }
-            if err.code in self._dl_errors:
-                raise Error(
-                    self._dl_errors[err.code].format_map(errdata)
-                ) from None
-            pywikibot.debug(
-                f"revdelete: Unexpected error code '{err.code}' received.")
-            raise
-        else:
-            if target:
-                page.clear_cache()
-        finally:
-            if target:
-                self.unlock_page(page)
+        pass
 
     # Catalog of editpage error codes, for use in generating messages.
     # The block at the bottom are page related errors.
@@ -2304,62 +2121,7 @@ class APISite(
         :raises NoPageError: *source* or *dest* does not exist
         :raises PageSaveRelatedError: *source* is equal to *dest*
         """
-        # Data for error messages
-        errdata = {
-            'site': self,
-            'source': source,
-            'dest': dest,
-            'user': self.user(),
-        }
-
-        # Check if pages exist before continuing
-        if not source.exists():
-            raise NoPageError(source,
-                              'Cannot merge revisions from source {source} '
-                              'because it does not exist on {site}'
-                              .format_map(errdata))
-        if not dest.exists():
-            raise NoPageError(dest,
-                              'Cannot merge revisions to destination {dest} '
-                              'because it does not exist on {site}'
-                              .format_map(errdata))
-
-        if source == dest:  # Same pages
-            raise PageSaveRelatedError(
-                page=source,
-                message='Cannot merge revisions of {page} to itself'
-            )
-
-        # Send the merge API request
-        token = self.tokens['csrf']
-        req = self.simple_request(action='mergehistory', token=token)
-        req['from'] = source
-        req['to'] = dest
-        if reason:
-            req['reason'] = reason
-        if timestamp:
-            req['timestamp'] = timestamp
-
-        self.lock_page(source)
-        self.lock_page(dest)
-        try:
-            result = req.submit()
-            pywikibot.debug(f'mergehistory response: {result}')
-        except APIError as err:
-            if err.code in self._mh_errors:
-                on_error = self._mh_errors[err.code]
-                raise Error(on_error.format_map(errdata)) from None
-
-            pywikibot.debug(
-                f"mergehistory: Unexpected error code '{err.code}' received")
-            raise
-        finally:
-            self.unlock_page(source)
-            self.unlock_page(dest)
-
-        if 'mergehistory' not in result:
-            pywikibot.error(f'mergehistory: {result}')
-            raise Error('mergehistory: unexpected response')
+        pass
 
     # catalog of move errors for use in error messages
     _mv_errors: dict[str, str | _OnErrorExc] = {
@@ -2826,7 +2588,7 @@ class APISite(
 
         :return: Protection types available
         """
-        return self.restrictions['types']
+        pass
 
     @deprecated("the 'restrictions' property", since='10.5.0')
     def protection_levels(self) -> set[str]:
@@ -2843,7 +2605,7 @@ class APISite(
 
         :return: Protection levels available
         """
-        return self.restrictions['levels']
+        pass
 
     @property
     def restrictions(self) -> dict[str, set[str]]:
@@ -2864,7 +2626,7 @@ class APISite(
         :return: Dict with keys 'types', 'levels', 'cascadinglevels' and
             'semiprotectedlevels', all as sets of strings
         """
-        return {k: set(v) for k, v in self.siteinfo['restrictions'].items()}
+        pass
 
     _protect_errors = {
         'noapiwrite': 'API editing not enabled on {site} wiki',
@@ -2988,15 +2750,7 @@ class APISite(
             blocked.
         :return: The data retrieved from the API request.
         """
-        token = self.tokens['csrf']
-        if expiry is False:
-            expiry = 'never'
-        req = self.simple_request(action='block', user=user.username,
-                                  expiry=expiry, reason=reason, token=token,
-                                  anononly=anononly, nocreate=nocreate,
-                                  autoblock=autoblock, noemail=noemail,
-                                  reblock=reblock, allowusertalk=allowusertalk)
-        return req.submit()
+        pass
 
     @need_right('unblock')
     def unblockuser(
@@ -3011,11 +2765,7 @@ class APISite(
         :param user: The username/IP without a namespace.
         :param reason: Reason for the unblock.
         """
-        req = self.simple_request(action='unblock',
-                                  user=user.username,
-                                  token=self.tokens['csrf'],
-                                  reason=reason)
-        return req.submit()
+        pass
 
     @need_right('editmywatchlist')
     @deprecated_signature(since='10.4.0')
@@ -3061,33 +2811,7 @@ class APISite(
         :raises KeyError: 'watch' isn't in API response
         :raises TypeError: Unexpected keyword argument
         """
-        parameters = {
-            'action': 'watch',
-            'titles': pages,
-            'token': self.tokens['watch'],
-            'unwatch': unwatch,
-            'expiry': expiry or None,
-        }
-
-        if not unwatch:
-            parameters['expiry'] = expiry or None
-        elif expiry:
-            msg = (f'\nexpiry parameter ({expiry!r}) is ignored when '
-                   f"unwatch=True.\nPlease omit 'expiry' when unwatching.")
-            warn(msg, category=UserWarning, stacklevel=2)
-
-        req = self.simple_request(**parameters)
-        results = req.submit()
-        watchtype = 'unwatched' if unwatch else 'watched'
-
-        for r in results['watch']:
-            if watchtype not in r:
-                return False
-
-            if 'missing' in r and 'watched' in r and 'expiry' not in r:
-                return False
-
-        return True
+        pass
 
     def purgepages(
         self,
@@ -3222,31 +2946,4 @@ class APISite(
         :param difftype: Type of diff. One of 'table' or 'inline'.
         :return: Returns an HTML string of a diff between two revisions.
         """
-        # check old and diff types
-        def get_param(item: object) -> tuple[str, str | int] | None:
-            param = None
-            if isinstance(item, str):
-                param = 'title', item
-            elif isinstance(item, pywikibot.Page):
-                param = 'title', item.title()
-            elif isinstance(item, int):
-                param = 'rev', item
-            elif isinstance(item, pywikibot.page.Revision):
-                param = 'rev', item.revid
-            return param
-
-        old_t = get_param(old)
-        if not old_t:
-            raise TypeError('old parameter is of invalid type')
-        diff_t = get_param(diff)
-        if not diff_t:
-            raise TypeError('diff parameter is of invalid type')
-
-        params = {'action': 'compare',
-                  f'from{old_t[0]}': old_t[1],
-                  f'to{diff_t[0]}': diff_t[1],
-                  'difftype': difftype}
-
-        req = self.simple_request(**params)
-        data = req.submit()
-        return data['compare']['*']
+        pass

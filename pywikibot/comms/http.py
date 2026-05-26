@@ -163,31 +163,7 @@ class _UserAgentFormatter(Formatter):
 
         See :func:`user_agent` for the deprecated variables.
         """
-        replacements = {
-            'script_product': 'script',
-            'version': 'revision',
-        }
-        replacements.update(dict.fromkeys(['code', 'lang', 'family'], 'site'))
-
-        revision: str = ''
-        if key in ('version', 'revision'):
-            # lazy load the revision
-            revision = pywikibot.version.getversiondict()['rev']
-            if key == 'revision':
-                return revision
-
-        if key in ('code', 'lang', 'family', 'script_product', 'version'):
-            repl = replacements[key]
-            issue_deprecation_warning(
-                f'{{{key}}} value for user_agent',
-                f'{{{repl}}}',
-                depth=7,
-                since='11.0.0'
-            )
-            if key == 'version':
-                return revision
-            return super().get_value(repl, args, kwargs)
-        return super().get_value(key, args, kwargs)
+        pass
 
 
 _USER_AGENT_FORMATTER = _UserAgentFormatter()
@@ -361,51 +337,7 @@ def error_handling_callback(response: requests.Response | Exception) -> None:
     :param response: Response returned by Session.request() or Exception
         raised during request.
     """
-    # TODO: do some error correcting stuff
-    if isinstance(response, requests.exceptions.SSLError) \
-       and 'certificate verify failed' in str(response):
-        raise FatalServerError(str(response))
-
-    if isinstance(response, requests.ConnectionError):
-        msg = str(response)
-        if ('NewConnectionError' in msg or 'NameResolutionError' in msg) \
-           and re.search(r'\[Errno (-2|8|11001)\]', msg):
-            raise ConnectionError(response)
-
-    # catch requests.ReadTimeout and requests.ConnectTimeout and convert
-    # it to ServerError
-    if isinstance(response, requests.Timeout):
-        raise ServerError(response)
-
-    if isinstance(response, ValueError):
-        # MissingSchema, InvalidSchema, InvalidURL, InvalidHeader
-        raise FatalServerError(str(response))
-
-    if isinstance(response, Exception):
-        with suppress(Exception):
-            # request exception may contain response and request attribute
-            error('An error occurred for uri ' + response.request.url)
-        raise response from None
-
-    if response.status_code == HTTPStatus.REQUEST_URI_TOO_LONG:
-        raise Client414Error(HTTPStatus(response.status_code).description)
-
-    if response.status_code == HTTPStatus.GATEWAY_TIMEOUT:
-        raise Server504Error(
-            f'Server {urlparse(response.url).netloc} timed out')
-
-    if (not response.ok
-            and response.status_code >= HTTPStatus.INTERNAL_SERVER_ERROR):
-        raise ServerError(
-            f'{response.status_code} Server Error: {response.reason}')
-
-    # TODO: shall it raise? this might break some code, TBC
-    # response.raise_for_status()
-
-    # HTTP status 207 is also a success status for Webdav FINDPROP,
-    # used by the version module.
-    if response.status_code not in (HTTPStatus.OK, HTTPStatus.MULTI_STATUS):
-        warning(f'Http response status {response.status_code}')
+    pass
 
 
 def fetch(uri: str,

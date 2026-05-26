@@ -141,32 +141,7 @@ def add_full_name(obj):
         :param outer_args: Args
         :param outer_kwargs: Kwargs
         """
-        def inner_wrapper(*args, **kwargs):
-            """Replacement function.
-
-            If the decorator supported arguments, they are in
-            outer_args, and this wrapper is used to process the args
-            which belong to the function that the decorated decorator
-            was decorating.
-
-            :param args: Args passed to the decorated function.
-            :param kwargs: Kwargs passed to the decorated function.
-            """
-            add_decorated_full_name(args[0])
-            return obj(*outer_args, **outer_kwargs)(*args, **kwargs)
-
-        inner_wrapper.__doc__ = obj.__doc__
-        inner_wrapper.__name__ = obj.__name__
-        inner_wrapper.__module__ = obj.__module__
-        inner_wrapper.__signature__ = inspect.signature(obj)
-
-        # The decorator being decorated may have args, so both
-        # syntax need to be supported.
-        if (len(outer_args) == 1 and not outer_kwargs
-                and callable(outer_args[0])):
-            add_decorated_full_name(outer_args[0])
-            return obj(outer_args[0])
-        return inner_wrapper
+        pass
 
     if not __debug__:
         return obj  # pragma: no cover
@@ -252,12 +227,7 @@ def deprecated(*args, **kwargs):
             :param kwargs: Kwargs passed to the decorated function.
             :return: The value returned by the decorated function
             """
-            name = obj.__full_name__
-            depth = get_wrapper_depth(wrapper) + 1
-            issue_deprecation_warning(
-                name, instead, depth, since=since,
-                warning_class=None if future_warning else DeprecationWarning)
-            return obj(*args, **kwargs)
+            pass
 
         def add_docstring(wrapper) -> None:
             """Add a Deprecated notice to the docstring."""
@@ -388,43 +358,7 @@ def deprecated_args(**arg_pairs: str | None):
             :return: The value returned by the decorated function
             :rtype: any
             """
-            name = obj.__full_name__
-            depth = get_wrapper_depth(wrapper) + 1
-            for old_arg, new_arg in arg_pairs.items():
-                output_args = {
-                    'name': name,
-                    'old_arg': old_arg,
-                    'new_arg': new_arg,
-                }
-                if old_arg not in __kw:
-                    continue
-
-                if not isinstance(new_arg, (str, NoneType)):
-                    raise TypeError(
-                        f'deprecated_arg value for {old_arg} of {name} must '
-                        f'be either str or None, not {type(new_arg).__name__}')
-
-                if new_arg:
-                    if new_arg in __kw:
-                        warn('{new_arg} argument of {name} '
-                             'replaces {old_arg}; cannot use both.'
-                             .format_map(output_args),
-                             RuntimeWarning, depth)
-                    else:
-                        warn('{old_arg} argument of {name} '
-                             'is deprecated; use {new_arg} instead.'
-                             .format_map(output_args),
-                             FutureWarning, depth)
-                        __kw[new_arg] = __kw[old_arg]
-                elif new_arg == '':
-                    pass
-                else:
-                    warn('{old_arg} argument of {name} is deprecated.'
-                         .format_map(output_args),
-                         FutureWarning, depth)
-                del __kw[old_arg]
-
-            return obj(*__args, **__kw)
+            pass
 
         if not __debug__:
             return obj  # pragma: no cover
@@ -526,76 +460,7 @@ def deprecated_signature(since: str = ''):
             :return: The value returned by the decorated function or
                   method
             """
-            # 1. fix deprecated positional-only usage
-            pos_only_in_kwargs = {
-                name: kwargs[name]
-                for name, p in params.items()
-                if p.kind == const.POSITIONAL_ONLY and name in kwargs
-            }
-
-            if pos_only_in_kwargs:
-                new_args: list[Any] = []
-                args_repr = []  # build representation for deprecation warning
-                idx = 0  # index for args
-
-                for name in arg_keys:
-                    param = params[name]
-
-                    if param.kind != const.POSITIONAL_ONLY:
-                        # append remaining POSITIONAL_OR_KEYWORD arguments
-                        new_args.extend(args[idx:])
-                        break
-
-                    if name in pos_only_in_kwargs:
-                        # Value was passed as keyword → use it
-                        value = kwargs.pop(name)
-                        args_repr.append(repr(value))
-                    elif idx < len(args):
-                        # Value from original args
-                        value = args[idx]
-                        idx += 1
-                        # Add ellipsis once for original args
-                        if name not in ('cls', 'self') and (
-                                not args_repr or args_repr[-1] != '...'):
-                            args_repr.append('...')
-                    elif param.default is not param.empty:
-                        # Value from default → show actual value
-                        value = param.default
-                        args_repr.append(repr(value))
-                    else:
-                        raise TypeError(
-                            f'Missing required positional argument: {name}'
-                        )
-
-                    new_args.append(value)
-
-                args = tuple(new_args)
-
-                args_str = ', '.join(args_repr)
-                issue_deprecation_warning(
-                    f'Passing positional-only arguments as keywords to '
-                    f"{func.__qualname__}(): {', '.join(pos_only_in_kwargs)}",
-                    f'positional arguments like {func.__name__}({args_str})',
-                    since=since
-                )
-
-            # 2.  warn for deprecated keyword-only usage as positional
-            if len(args) > positionals:
-                replace_args = list(zip(arg_keys[positionals:],
-                                        args[positionals:]))
-                pos_args = "', '".join(name for name, _ in replace_args)
-                keyw_args = ', '.join(f'{name}={arg!r}'
-                                      for name, arg in replace_args)
-                issue_deprecation_warning(
-                    f"Passing '{pos_args}' as positional "
-                    f'argument(s) to {func.__qualname__}()',
-                    f'keyword arguments like {keyw_args}',
-                    since=since)
-
-                args = args[:positionals]
-                kwargs.update(replace_args)
-
-            return func(*args, **kwargs)
+            pass
 
         sig = inspect.signature(func)
         params = sig.parameters
@@ -655,29 +520,7 @@ def remove_last_args(arg_names):
             :return: The value returned by the decorated function
             :rtype: any
             """
-            name = obj.__full_name__
-            depth = get_wrapper_depth(wrapper) + 1
-            args, varargs, kwargs, *_ = getfullargspec(wrapper.__wrapped__)
-            if varargs is not None and kwargs is not None:  # pragma: no cover
-                raise ValueError(f'{name} may not have * or ** args.')
-            deprecated = set(__kw) & set(arg_names)
-            if len(__args) > len(args):
-                deprecated.update(arg_names[:len(__args) - len(args)])
-            # remove at most |arg_names| entries from the back
-            new_args = tuple(__args[:max(len(args),
-                                         len(__args) - len(arg_names))])
-            new_kwargs = {arg: val for arg, val in __kw.items()
-                          if arg not in arg_names}
-
-            if deprecated:
-                # sort them according to arg_names
-                deprecated = [arg for arg in arg_names if arg in deprecated]
-                warn("The trailing arguments ('{}') of {} are deprecated. "
-                     "The value(s) provided for '{}' have been dropped."
-                     .format("', '".join(arg_names), name,
-                             "', '".join(deprecated)),
-                     DeprecationWarning, depth)
-            return obj(*new_args, **new_kwargs)
+            pass
 
         manage_wrapping(wrapper, obj)
 
@@ -721,11 +564,6 @@ def redirect_func(target, *,
     :return: A new function which adds a warning prior to each execution.
     :rtype: callable
     """
-    def call(*a, **kw):
-        issue_deprecation_warning(
-            old_name, new_name, since=since,
-            warning_class=None if future_warning else DeprecationWarning)
-        return target(*a, **kw)
 
     if target_module is None:
         target_module = target.__module__

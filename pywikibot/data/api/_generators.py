@@ -188,10 +188,7 @@ class APIGenerator(APIGeneratorBase, GeneratorWrapper):
         :param value: The value of maximum number of items to be
             retrieved per API request to set.
         """
-        self.query_increment = int(value)
-        self.request[self.limit_name] = self.query_increment
-        pywikibot.debug(f'{type(self).__name__}: Set query_increment to '
-                        f'{self.query_increment}.')
+        pass
 
     def set_maximum_items(self, value: int | str | None) -> None:
         """Set the maximum number of items to be retrieved from the wiki.
@@ -435,16 +432,7 @@ class QueryGenerator(APIGeneratorBase, GeneratorWrapper):
         If not called, the default is to ask for "max" items and let the
         API decide how many to send.
         """
-        limit = int(value)
-
-        # don't update if limit is greater than maximum allowed by API
-        if self.api_limit is None:
-            self.query_limit = limit
-        else:
-            self.query_limit = min(self.api_limit, limit)
-        pywikibot.debug(
-            f'{type(self).__name__}: Set query_limit to {self.query_limit}.'
-        )
+        pass
 
     def set_maximum_items(self, value: int | str | None) -> None:
         """Set the maximum number of items to be retrieved from the wiki.
@@ -871,7 +859,7 @@ class PropertyGenerator(QueryGenerator):
     @property
     def props(self):
         """The requested property names."""
-        return self._props
+        pass
 
     @property
     def generator(self):
@@ -1029,32 +1017,17 @@ def _update_protection(page, pagedict: dict) -> None:
 
 def _update_revisions(page, revisions) -> None:
     """Update page revisions."""
-    for rev in revisions:
-        revid = rev['revid']
-        revision = pywikibot.page.Revision(**rev)
-        # do not overwrite an existing Revision if there is no content
-        if revid in page._revisions and revision.text is None:  # type: ignore[attr-defined]  # noqa: E501
-            pass
-        else:
-            page._revisions[revid] = revision
+    pass
 
 
 def _update_templates(page, templates) -> None:
     """Update page templates."""
-    templ_pages = {pywikibot.Page(page.site, tl['title']) for tl in templates}
-    if hasattr(page, '_templates'):
-        page._templates |= templ_pages
-    else:
-        page._templates = templ_pages
+    pass
 
 
 def _update_categories(page, categories) -> None:
     """Update page categories."""
-    cat_pages = {pywikibot.Page(page.site, ct['title']) for ct in categories}
-    if hasattr(page, '_categories'):
-        page._categories |= cat_pages
-    else:
-        page._categories = cat_pages
+    pass
 
 
 def _update_langlinks(page, langlinks) -> None:
@@ -1065,34 +1038,12 @@ def _update_langlinks(page, langlinks) -> None:
 
     :meta public:
     """
-    links = set()
-    for langlink in langlinks:
-        with suppress(UnknownSiteError):
-            link = pywikibot.Link.langlinkUnsafe(langlink['lang'],
-                                                 langlink['*'],
-                                                 source=page.site)
-            links.add(link)
-
-    if hasattr(page, '_langlinks'):
-        page._langlinks |= links
-    else:
-        page._langlinks = links
+    pass
 
 
 def _update_coordinates(page, coordinates) -> None:
     """Update page coordinates."""
-    coords = []
-    for co in coordinates:
-        coord = pywikibot.Coordinate(lat=co['lat'],
-                                     lon=co['lon'],
-                                     typ=co.get('type', ''),
-                                     name=co.get('name', ''),
-                                     dim=int(co.get('dim', 0)) or None,
-                                     globe=co['globe'],  # See [[gerrit:67886]]
-                                     primary='primary' in co
-                                     )
-        coords.append(coord)
-    page._coords = coords
+    pass
 
 
 def update_page(page: pywikibot.Page,

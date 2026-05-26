@@ -132,11 +132,7 @@ class User(Page):
 
         :param force: If True, forces reloading the data from API
         """
-        if not self.isAnonymous():
-            reg = self.getprops(force).get('registration')
-            if reg:
-                return pywikibot.Timestamp.fromISOformat(reg)
-        return None
+        pass
 
     def editCount(self, force: bool = False) -> int:  # noqa: N802
         """Return edit count for a registered user.
@@ -175,7 +171,7 @@ class User(Page):
 
         :param force: If True, forces reloading the data from API
         """
-        return 'blockpartial' in self.getprops(force)
+        pass
 
     def get_block_info(self, *, force: bool = False) -> dict[str, Any] | None:
         """Return a dictionary of block information if the user is blocked.
@@ -197,11 +193,7 @@ class User(Page):
 
         :param force: If True, forces reloading the data from API
         """
-        props = self.getprops(force)
-        if 'blockid' not in props:
-            return None
-
-        return {k: v for k, v in props.items() if k.startswith('block')}
+        pass
 
     def is_locked(self, force: bool = False) -> bool:
         """Determine whether the user is currently locked globally.
@@ -235,9 +227,7 @@ class User(Page):
         :param force: If True, forces reloading the data from API
         :return: Return 'male', 'female', or 'unknown'
         """
-        if self.isAnonymous():
-            return 'unknown'
-        return self.getprops(force).get('gender', 'unknown')
+        pass
 
     def rights(self, force: bool = False) -> list:
         """Return user rights.
@@ -245,7 +235,7 @@ class User(Page):
         :param force: If True, forces reloading the data from API
         :return: Return user rights
         """
-        return self.getprops(force).get('rights', [])
+        pass
 
     def getUserPage(self, subpage: str = '') -> Page:  # noqa: N802
         """Return a Page object relative to this user's main page.
@@ -254,14 +244,7 @@ class User(Page):
             title (optional)
         :return: Page object of user page or user subpage
         """
-        if self._isAutoblock:
-            # This user is probably being queried for purpose of lifting
-            # an autoblock, so has no user pages per se.
-            raise AutoblockUserError(
-                'This is an autoblock ID, you can only use to unblock it.')
-        if subpage:
-            subpage = '/' + subpage
-        return Page(Link(self.title() + subpage, self.site))
+        pass
 
     def getUserTalkPage(self, subpage: str = '') -> Page:  # noqa: N802
         """Return a Page object relative to this user's main talk page.
@@ -318,20 +301,14 @@ class User(Page):
 
         Refer :py:obj:`APISite.blockuser` method for parameters.
         """
-        try:
-            self.site.blockuser(self, *args, **kwargs)
-        except APIError as err:
-            if err.code == 'invalidrange':
-                raise ValueError(f'{self.username} is not a valid IP range.')
-
-            raise
+        pass
 
     def unblock(self, reason: str | None = None) -> None:
         """Remove the block for the user.
 
         :param reason: Reason for the unblock.
         """
-        self.site.unblockuser(self, reason)
+        pass
 
     def logevents(self, **kwargs) -> Generator[pywikibot.logentries.LogEntry]:
         """Yield user activities.
@@ -362,7 +339,7 @@ class User(Page):
 
         :return: Last user log entry
         """
-        return next(self.logevents(total=1), None)
+        pass
 
     @property
     def last_activity(self) -> pywikibot.Timestamp | None:
@@ -375,27 +352,7 @@ class User(Page):
 
         :return: Timestamp of last user activity
         """
-        last = set()
-
-        if last_event := self.last_event:
-            last.add(last_event.timestamp())
-
-        if last_edit := self.last_edit:
-            last.add(last_edit[2])
-
-        if last_deleted_contrib := self.deleted_contributions(total=1):
-            last.add(next(last_deleted_contrib)[1]['timestamp'])
-
-        if last_abuse_log := self.site.abuselog(
-            user=self.username, total=1, aflprop='timestamp'
-        ):
-            last.add(
-                pywikibot.Timestamp.fromISOformat(
-                    next(last_abuse_log)['timestamp']
-                )
-            )
-
-        return max(last) if last else None
+        pass
 
     def contributions(
         self,
@@ -459,7 +416,7 @@ class User(Page):
         :return: Tuple of pywikibot.Page, revid, pywikibot.Timestamp,
             comment
         """
-        return next(self.contributions(reverse=True, total=1), None)
+        pass
 
     @property
     def last_edit(
@@ -471,7 +428,7 @@ class User(Page):
         :return: Tuple of pywikibot.Page, revid, pywikibot.Timestamp,
             comment
         """
-        return next(self.contributions(total=1), None)
+        pass
 
     def deleted_contributions(
         self,
@@ -489,11 +446,7 @@ class User(Page):
         :keyword reverse: Iterate oldest contributions first (default: newest)
         :keyword namespaces: Only iterate pages in these namespaces
         """
-        for data in self.site.alldeletedrevisions(user=self.username,
-                                                  total=total, **kwargs):
-            page = Page(self.site, data['title'], data['ns'])
-            for contrib in data['revisions']:
-                yield page, Revision(**contrib)
+        pass
 
     def uploadedImages(self, total: int = 10):  # noqa: N802
         """Yield tuples describing files uploaded by this user.
@@ -504,13 +457,7 @@ class User(Page):
 
         :param total: Limit result to this number of pages
         """
-        if not self.isRegistered():
-            return
-        for item in self.logevents(logtype='upload', total=total):
-            yield (item.page(),
-                   str(item.timestamp()),
-                   item.comment(),
-                   item.pageid() > 0)
+        pass
 
     @property
     def is_thankable(self) -> bool:
@@ -521,7 +468,7 @@ class User(Page):
            Privacy of thanks preferences is under discussion, please see
            :phab:`T57401#2216861` and :phab:`T120753#1863894`.
         """
-        return self.isRegistered() and 'bot' not in self.groups()
+        pass
 
     def renamed_target(self) -> User:
         """Return a User object for the target this user was renamed to.
@@ -553,11 +500,4 @@ class User(Page):
 
         :raises NoRenameTargetError: User was not renamed
         """
-        gen = iter(self.site.logevents(logtype='renameuser',
-                                       page=self, total=1))
-        try:
-            renamed = next(gen)
-        except StopIteration:
-            raise NoRenameTargetError(self)
-
-        return User(self.site, renamed.params['newuser'])
+        pass

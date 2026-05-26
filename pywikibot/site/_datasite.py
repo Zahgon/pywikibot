@@ -107,9 +107,7 @@ class DataSite(APISite):
         :return: item namespace
         :rtype: Namespace
         """
-        if self._item_namespace is None:
-            self._item_namespace = self.get_namespace_for_entity_type('item')
-        return self._item_namespace
+        pass
 
     @property
     def property_namespace(self):
@@ -118,10 +116,7 @@ class DataSite(APISite):
         :return: property namespace
         :rtype: Namespace
         """
-        if self._property_namespace is None:
-            self._property_namespace = self.get_namespace_for_entity_type(
-                'property')
-        return self._property_namespace
+        pass
 
     def get_entity_for_entity_id(self, entity_id):
         """Return a new instance for given entity id.
@@ -144,7 +139,7 @@ class DataSite(APISite):
 
         :return: sparql endpoint url
         """
-        return self.siteinfo.get('wikibase-sparql')
+        pass
 
     @property
     def concept_base_uri(self) -> str:
@@ -152,7 +147,7 @@ class DataSite(APISite):
 
         :return: concept base uri
         """
-        return self.siteinfo['wikibase-conceptbaseuri']
+        pass
 
     def geo_shape_repository(self) -> DataSite | None:
         """Return Site object for the geo-shapes repository e.g. commons."""
@@ -206,36 +201,7 @@ class DataSite(APISite):
             objects, or Page objects linked to an ItemPage.
         :param groupsize: How many pages to query at a time
         """
-        if not hasattr(self, '_entity_namespaces'):
-            self._cache_entity_namespaces()
-        for batch in batched(pagelist, groupsize):
-            req: dict[str, list[str]] = {'ids': [], 'titles': [], 'sites': []}
-            for p in batch:
-                if isinstance(p, pywikibot.page.WikibaseEntity):
-                    ident = p._defined_by()
-                    for key in ident:
-                        req[key].append(ident[key])
-                elif (p.site == self
-                      and p.namespace() in self._entity_namespaces.values()):
-                    req['ids'].append(p.title(with_ns=False))
-                else:
-                    assert p.site.has_data_repository, \
-                        'Site must have a data repository'
-                    req['sites'].append(p.site.dbName())
-                    req['titles'].append(p._link._text)
-
-            req = self.simple_request(action='wbgetentities', **req)
-            data = req.submit()
-            for entity in data['entities']:
-                if 'missing' in data['entities'][entity]:
-                    continue
-                cls = self._type_to_class[data['entities'][entity]['type']]
-                page = cls(self, entity)
-                # No api call is made because item._content is given
-                page._content = data['entities'][entity]
-                with suppress(IsRedirectPageError):
-                    page.get()  # cannot provide get_redirect=True (T145971)
-                yield page
+        pass
 
     def get_property_type(self, prop: pywikibot.page.Property) -> str:
         """Obtain the type of a property.
@@ -276,10 +242,7 @@ class DataSite(APISite):
         .. version-deprecated:: 9.5
            Use :meth:`get_property_type` instead.
         """
-        try:
-            return self.get_property_type(prop)
-        except NoWikibaseEntityError as exc:
-            raise KeyError(f'{exc.entity.id} does not exist') from None
+        pass
 
     @need_right('edit')
     def editEntity(self,
@@ -406,29 +369,7 @@ class DataSite(APISite):
         :param summary: Edit summary
         :param tags: Change tags to apply to the revision
         """
-        if claim.isReference or claim.isQualifier:
-            raise NotImplementedError
-
-        if not claim.snak:
-            # We need to already have the snak value
-            raise NoPageError(claim)
-
-        params = {
-            'action': 'wbsetclaimvalue',
-            'claim': claim.snak,
-            'snaktype': snaktype,
-            'summary': summary,
-            'tags': tags,
-            'bot': bot,
-            'token': self.tokens['csrf'],
-        }
-
-        if snaktype == 'value':
-            params['value'] = json.dumps(claim._formatValue())
-
-        params['baserevid'] = claim.on_item.latest_revision_id
-        req = self.simple_request(**params)
-        return req.submit()
+        pass
 
     @need_right('edit')
     def save_claim(self,
@@ -449,27 +390,7 @@ class DataSite(APISite):
         :raises NotImplementedError: ``claim.isReference`` or
             ``claim.isQualifier`` is given
         """
-        if claim.isReference or claim.isQualifier:
-            raise NotImplementedError
-
-        if not claim.snak:
-            # We need to already have the snak value
-            raise NoPageError(claim)
-
-        params = {
-            'action': 'wbsetclaim',
-            'claim': json.dumps(claim.toJSON()),
-            'baserevid': claim.on_item.latest_revision_id,
-            'summary': summary,
-            'tags': tags,
-            'bot': bot,
-            'token': self.tokens['csrf'],
-        }
-
-        req = self.simple_request(**params)
-        data = req.submit()
-        claim.on_item.latest_revision_id = data['pageinfo']['lastrevid']
-        return data
+        pass
 
     @need_right('edit')
     def editSource(self,
@@ -555,32 +476,7 @@ class DataSite(APISite):
         :param tags: Change tags to apply to the revision
         :raises ValueError: The claim cannot have a qualifier.
         """
-        if claim.isReference or claim.isQualifier:
-            raise ValueError('The claim cannot have a qualifier.')
-
-        params = {
-            'action': 'wbsetqualifier',
-            'claim': claim.snak,
-            'baserevid': claim.on_item.latest_revision_id,
-            'summary': summary,
-            'tags': tags,
-            'bot': bot,
-            'token': self.tokens['csrf'],
-        }
-
-        if (not new and hasattr(qualifier, 'hash')
-                and qualifier.hash is not None):
-            params['snakhash'] = qualifier.hash
-
-        # build up the snak
-        if qualifier.getSnakType() == 'value':
-            params['value'] = json.dumps(qualifier._formatValue())
-
-        params['snaktype'] = qualifier.getSnakType()
-        params['property'] = qualifier.getID()
-
-        req = self.simple_request(**params)
-        return req.submit()
+        pass
 
     @need_right('edit')
     def removeClaims(self,
@@ -600,23 +496,7 @@ class DataSite(APISite):
         :param summary: Edit summary
         :param tags: Change tags to apply to the revision
         """
-        # Check on_item for all additional claims
-        items = {claim.on_item for claim in claims if claim.on_item}
-        assert len(items) == 1
-        baserevid = items.pop().latest_revision_id
-
-        params = {
-            'action': 'wbremoveclaims',
-            'claim': '|'.join(claim.snak for claim in claims),
-            'baserevid': baserevid,
-            'summary': summary,
-            'tags': tags,
-            'bot': bot,
-            'token': self.tokens['csrf'],
-        }
-
-        req = self.simple_request(**params)
-        return req.submit()
+        pass
 
     @need_right('edit')
     def removeSources(self,
@@ -638,19 +518,7 @@ class DataSite(APISite):
         :param summary: Edit summary
         :param tags: Change tags to apply to the revision
         """
-        params = {
-            'action': 'wbremovereferences',
-            'statement': claim.snak,
-            'references': '|'.join(source.hash for source in sources),
-            'baserevid': claim.on_item.latest_revision_id,
-            'summary': summary,
-            'tags': tags,
-            'bot': bot,
-            'token': self.tokens['csrf'],
-        }
-
-        req = self.simple_request(**params)
-        return req.submit()
+        pass
 
     @need_right('edit')
     def remove_qualifiers(self,
@@ -672,19 +540,7 @@ class DataSite(APISite):
         :param summary: Edit summary
         :param tags: Change tags to apply to the revision
         """
-        params = {
-            'action': 'wbremovequalifiers',
-            'claim': claim.snak,
-            'qualifiers': [qualifier.hash for qualifier in qualifiers],
-            'baserevid': claim.on_item.latest_revision_id,
-            'summary': summary,
-            'tags': tags,
-            'bot': bot,
-            'token': self.tokens['csrf'],
-        }
-
-        req = self.simple_request(**params)
-        return req.submit()
+        pass
 
     @need_right('edit')
     def linkTitles(self,
@@ -701,18 +557,7 @@ class DataSite(APISite):
         :param bot: Whether to mark the edit as a bot edit
         :return: dict API output
         """
-        params = {
-            'action': 'wblinktitles',
-            'tosite': page1.site.dbName(),
-            'totitle': page1.title(),
-            'fromsite': page2.site.dbName(),
-            'fromtitle': page2.title(),
-            'bot': bot,
-            'token': self.tokens['csrf']
-        }
-
-        req = self.simple_request(**params)
-        return req.submit()
+        pass
 
     @need_right('item-merge')
     def mergeItems(self,
@@ -788,15 +633,7 @@ class DataSite(APISite):
         :type to_item: pywikibot.ItemPage
         :param bot: Whether to mark the edit as a bot edit
         """
-        params = {
-            'action': 'wbcreateredirect',
-            'from': from_item.getID(),
-            'to': to_item.getID(),
-            'token': self.tokens['csrf'],
-            'bot': bot,
-        }
-        req = self.simple_request(**params)
-        return req.submit()
+        pass
 
     def search_entities(self, search: str, language: str,
                         total: int | None = None, **kwargs):
@@ -850,39 +687,7 @@ class DataSite(APISite):
         :return: list of parsed values
         :raises ValueError: Parsing failed due to some invalid input values
         """
-        params = {
-            'action': 'wbparsevalue',
-            'datatype': datatype,
-            'values': values,
-            'options': json.dumps(options or {}),
-            'validate': validate,
-            'uselang': language or 'en',
-        }
-        req = self.simple_request(**params)
-        try:
-            data = req.submit()
-        except APIError as e:
-            if e.code.startswith('wikibase-parse-error'):
-                for err in e.other['results']:
-                    if 'error' in err:
-                        pywikibot.error('{error-info} for value {raw!r}, '
-                                        '{expected-format!r} format expected'
-                                        .format_map(err))
-                raise ValueError(e) from None
-            raise
-
-        if 'results' not in data:
-            raise RuntimeError(
-                f"Unexpected missing 'results' in query data\n{data}")
-
-        results = []
-        for result_hash in data['results']:
-            if 'value' not in result_hash:
-                # There should be an APIError occurred already
-                raise RuntimeError("Unexpected missing 'value' in query data:"
-                                   f'\n{result_hash}')
-            results.append(result_hash['value'])
-        return results
+        pass
 
     @need_right('edit')
     def _wbset_action(self, itemdef, action: str, action_data,
@@ -926,108 +731,35 @@ class DataSite(APISite):
         :return: query result
         :raises: AssertionError, TypeError
         """
-        def format_sitelink(sitelink):
-            """Convert SiteLink to a dict accepted by wbsetsitelink API."""
-            if isinstance(sitelink, pywikibot.page.SiteLink):
-                _dict = {
-                    'linksite': sitelink._sitekey,
-                    'linktitle': sitelink._rawtitle,
-                    'badges': '|'.join([b.title() for b in sitelink.badges]),
-                }
-            else:
-                _dict = sitelink
-
-            return _dict
-
-        def prepare_data(action, data):
-            """Prepare data as expected by API."""
-            if action == 'wbsetaliases':
-                res = data
-                keys = set(res)
-                assert keys < {'language', 'add', 'remove', 'set'}
-                assert 'language' in keys
-                assert ({'add', 'remove', 'set'} & keys)
-                assert ({'add', 'set'} >= keys)
-                assert ({'remove', 'set'} >= keys)
-            elif action in ('wbsetlabel', 'wbsetdescription'):
-                res = data
-                keys = set(res)
-                assert keys == {'language', 'value'}
-            elif action == 'wbsetsitelink':
-                res = format_sitelink(data)
-                keys = set(res)
-                assert keys >= {'linksite'}
-                assert keys <= {'linksite', 'linktitle', 'badges'}
-            else:
-                raise ValueError('Something has gone wrong ...')
-
-            return res
-
-        # Supported actions
-        assert action in ('wbsetaliases', 'wbsetdescription',
-                          'wbsetlabel', 'wbsetsitelink'), \
-            f'action {action} not supported.'
-
-        # prefer ID over (site, title)
-        if isinstance(itemdef, str):
-            itemdef = self.get_entity_for_entity_id(itemdef)
-        elif isinstance(itemdef, pywikibot.Page):
-            itemdef = pywikibot.ItemPage.fromPage(itemdef, lazy_load=True)
-        elif not isinstance(itemdef, pywikibot.page.WikibaseEntity):
-            raise TypeError('itemdef shall be str, WikibaseEntity or Page')
-
-        params = itemdef._defined_by(singular=True)
-        # TODO: support 'new'
-        baserevid = kwargs.pop(
-            'baserevid',
-            itemdef.latest_revision_id if 'id' in params else 0
-        )
-        params.update(
-            {'baserevid': baserevid,
-             'action': action,
-             'token': self.tokens['csrf'],
-             'bot': kwargs.pop('bot', True),
-             })
-        params.update(prepare_data(action, action_data))
-
-        for arg, param in kwargs.items():
-            if arg in ['summary', 'tags']:
-                params[arg] = param
-            else:
-                warn(f'Unknown parameter {arg} for action {action}, ignored',
-                     UserWarning, 2)
-
-        req = self.simple_request(**params)
-        return req.submit()
+        pass
 
     def wbsetaliases(self, itemdef, aliases, **kwargs):
         """Set aliases for a single Wikibase entity.
 
         See self._wbset_action() for parameters
         """
-        return self._wbset_action(itemdef, 'wbsetaliases', aliases, **kwargs)
+        pass
 
     def wbsetdescription(self, itemdef, description, **kwargs):
         """Set description for a single Wikibase entity.
 
         See self._wbset_action()
         """
-        return self._wbset_action(itemdef, 'wbsetdescription', description,
-                                  **kwargs)
+        pass
 
     def wbsetlabel(self, itemdef, label, **kwargs):
         """Set label for a single Wikibase entity.
 
         See self._wbset_action() for parameters
         """
-        return self._wbset_action(itemdef, 'wbsetlabel', label, **kwargs)
+        pass
 
     def wbsetsitelink(self, itemdef, sitelink, **kwargs):
         """Set, remove or modify a sitelink on a Wikibase item.
 
         See self._wbset_action() for parameters
         """
-        return self._wbset_action(itemdef, 'wbsetsitelink', sitelink, **kwargs)
+        pass
 
     @need_right('edit')
     @need_extension('WikibaseLexeme')
@@ -1044,17 +776,7 @@ class DataSite(APISite):
             conflicts.
         :type baserevid: long
         """
-        params = {
-            'action': 'wbladdform',
-            'lexemeId': lexeme.getID(),
-            'data': json.dumps(form.toJSON()),
-            'bot': bot,
-            'token': self.tokens['csrf'],
-        }
-        if baserevid:
-            params['baserevid'] = baserevid
-        req = self.simple_request(**params)
-        return req.submit()
+        pass
 
     @need_right('edit')
     @need_extension('WikibaseLexeme')
@@ -1068,16 +790,7 @@ class DataSite(APISite):
             conflicts.
         :type baserevid: long
         """
-        params = {
-            'action': 'wblremoveform',
-            'id': form.getID(),
-            'bot': bot,
-            'token': self.tokens['csrf'],
-        }
-        if baserevid:
-            params['baserevid'] = baserevid
-        req = self.simple_request(**params)
-        return req.submit()
+        pass
 
     @need_right('edit')
     @need_extension('WikibaseLexeme')
@@ -1098,14 +811,4 @@ class DataSite(APISite):
             conflicts.
         :return: New form data
         """
-        params = {
-            'action': 'wbleditformelements',
-            'formId': form.getID(),
-            'data': json.dumps(data),
-            'bot': bot,
-            'token': self.tokens['csrf'],
-        }
-        if baserevid:
-            params['baserevid'] = baserevid
-        req = self.simple_request(**params)
-        return req.submit()
+        pass

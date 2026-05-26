@@ -96,7 +96,4 @@ class Notification:
         :return: True if the notification was successfully marked as
             read, else False.
         """
-        if self.event_id is None:
-            return False
-
-        return self.site.notifications_mark_read(**{'list': self.event_id})
+        pass

@@ -225,16 +225,7 @@ class _SuperHunk(abc.Sequence):
     def split(self) -> list[_SuperHunk]:
         return [_SuperHunk([hunk]) for hunk in self._hunks]
 
-    @property
-    def reviewed(self) -> int:
-        assert len({hunk.reviewed for hunk in self._hunks}) == 1, \
-            'All hunks should have the same review status'
-        return self._hunks[0].reviewed
 
-    @reviewed.setter
-    def reviewed(self, reviewed: int) -> None:
-        for hunk in self._hunks:
-            hunk.reviewed = reviewed
 
 
 class PatchManager:
@@ -674,20 +665,4 @@ def get_close_matches_ratio(
     .. _PSF:
        https://docs.python.org/3/license.html#psf-license-agreement-for-python-release
     """
-    if n < 0:
-        raise ValueError(f'n must be > 0: {n!r}')
-    if not 0.0 <= cutoff <= 1.0:
-        raise ValueError(f'cutoff must be in [0.0, 1.0]: {cutoff!r}')
-
-    result = []
-    s = SequenceMatcher()
-    s.set_seq2(word.lower() if ignorecase else word)
-    for x in possibilities:
-        s.set_seq1(x.lower() if ignorecase else x)
-        if s.real_quick_ratio() >= cutoff and \
-           s.quick_ratio() >= cutoff and \
-           s.ratio() >= cutoff:
-            result.append((s.ratio(), x))
-
-    # Move the best scorers to head of list
-    return nlargest(n, result)
+    pass

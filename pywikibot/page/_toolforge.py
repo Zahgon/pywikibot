@@ -34,20 +34,7 @@ class WikiBlameMixin:
 
     def _check_wh_supported(self) -> None:
         """Check if WikiHistory is supported."""
-        if self.site.family.name != 'wikipedia':
-            raise NotImplementedError(
-                'main_authors method is implemented for wikipedia family only')
-
-        if (code := self.site.code) not in self.WIKIBLAME_CODES:
-            raise NotImplementedError(
-                f'main_authors method is not implemented for wikipedia:{code}')
-
-        if (ns := self.namespace()) not in (0, 4, 10, 12, 14, 100):
-            raise NotImplementedError(
-                f'main_authors method is not implemented for {ns} namespace')
-
-        if not self.exists():
-            raise pywikibot.exceptions.NoPageError(self)
+        pass
 
     @deprecated('authorsship', since='9.3.0')
     @deprecated_args(onlynew=None)  # since 9.2.0
@@ -74,8 +61,7 @@ class WikiBlameMixin:
         :raise NoPageError: The page does not exist.
         :raise TimeoutError: WikiHistory timeout
         """
-        return collections.Counter(
-            {user: int(cnt) for user, (_, cnt) in self.authorship(5).items()})
+        pass
 
     @remove_last_args(['revid', 'date'])  # since 10.1.0
     def authorship(
@@ -168,49 +154,7 @@ class WikiBlameMixin:
         :raise NoPageError: The page does not exist.
         :raise TimeoutError: WikiHistory timeout
         """
-        if n and n > 5:
-            warn('Only the first 5 authors can be given.', stacklevel=2)
-
-        baseurl = 'https://wikihistory.toolforge.org'
-        pattern = (r'><bdi>(?P<author>.+?)</bdi></a>\s'
-                   r'\((?P<percent>\d{1,3})&')
-
-        self._check_wh_supported()
-
-        for onlynew in (1, 0):
-            url = baseurl + (f'/wiki/getauthors.php?wiki={self.site.code}wiki'
-                             f'&page_id={self.pageid}&onlynew={onlynew}')
-
-            r = pywikibot.comms.http.fetch(url)
-            if r.status_code != HTTPStatus.OK:
-                r.raise_for_status()
-
-            if 'Timeout' not in r.text:
-                break
-
-            pywikibot.sleep(pywikibot.config.retry_wait)
-        else:
-            raise pywikibot.exceptions.TimeoutError('WikiHistory Timeout')
-
-        length = len(self.text)
-        result: list[list[str]] = []
-        pct_sum = 0.0
-        for rank, (user, cnt) in enumerate(re.findall(pattern, r.text),
-                                           start=1):
-            chars = length * int(cnt) // 100
-            percent = float(cnt)
-
-            # take into account that data() is ordered
-            if n and rank > n or chars < min_chars or percent < min_pct:
-                break
-
-            result.append((user, chars, percent))
-
-            pct_sum += percent
-            if max_pct_sum and pct_sum >= max_pct_sum:
-                break
-
-        return {user: (chars, percent) for user, chars, percent in result}
+        pass
 
 
 class WikiWhoMixin:
@@ -238,20 +182,7 @@ class WikiWhoMixin:
         :raise NotImplementedError: unsupported site, language, or namespace
         :raise NoPageError: page does not exist
         """
-        if self.site.family.name != 'wikipedia':
-            raise NotImplementedError(
-                'WikiWho API is implemented for wikipedia family only')
-
-        if (code := self.site.code) not in self.WIKIWHO_CODES:
-            raise NotImplementedError(
-                f'WikiWho API is not implemented for wikipedia:{code}')
-
-        if (ns := self.namespace()) != 0:
-            raise NotImplementedError(
-                f'WikiWho API is not implemented for {ns} namespace')
-
-        if not self.exists():
-            raise pywikibot.exceptions.NoPageError(self)
+        pass
 
     def _build_wikiwho_url(self, endpoint: str) -> str:
         """Build WikiWho API URL for the given endpoint.
@@ -262,12 +193,7 @@ class WikiWhoMixin:
             edit_persistence)
         :return: Complete API URL
         """
-        article_title = self.title(with_ns=False, with_section=False)
-        encoded_title = urllib.parse.quote(article_title, safe='')
-        base_url = 'https://wikiwho-api.wmcloud.org'
-        url = (f'{base_url}/{self.site.code}/api/v1.0.0-beta/{endpoint}/'
-               f'{encoded_title}/')
-        return url
+        pass
 
     def get_annotations(self, *, use_cache: bool = True) -> dict[str, Any]:
         """Get WikiWho annotations for article revisions.
@@ -303,41 +229,7 @@ class WikiWhoMixin:
         :raise pywikibot.exceptions.ServerError: WikiWho API error
         :raise requests.exceptions.HTTPError: HTTP error from WikiWho API
         """
-        self._check_wikiwho_supported()
-
-        # Check cache first
-        cache_path = self._get_wikiwho_pickle_path(
-            self.site.code, self.pageid)
-        if use_cache and cache_path.exists():
-            with open(cache_path, 'rb') as f:
-                return pickle.load(f)
-
-        url = self._build_wikiwho_url('all_content')
-        url = f'{url}?editor=true&o_rev_id=true'
-
-        r = pywikibot.comms.http.fetch(url)
-
-        if r.status_code != HTTPStatus.OK:
-            r.raise_for_status()
-
-        try:
-            data = r.json()
-        except Exception as e:
-            raise pywikibot.exceptions.ServerError(
-                f'Failed to parse WikiWho API response: {e}')
-
-        if 'Error' in data or 'error' in data:
-            error_msg = data.get('Error') or data.get('error', 'Unknown error')
-            raise pywikibot.exceptions.ServerError(
-                f'WikiWho API error: {error_msg}')
-
-        # Save to cache if caching is enabled
-        if use_cache:
-            cache_path.parent.mkdir(parents=True, exist_ok=True)
-            with open(cache_path, 'wb') as f:
-                pickle.dump(data, f, protocol=pywikibot.config.pickle_protocol)
-
-        return data
+        pass
 
     @staticmethod
     def _get_wikiwho_pickle_path(lang: str, page_id: int, cache_dir=None):
@@ -366,17 +258,4 @@ class WikiWhoMixin:
         :param cache_dir: Custom cache directory (defaults to apicache/wikiwho)
         :return: Path object for the pickle file
         """
-        # Use provided cache_dir or default to apicache/wikiwho
-        if cache_dir is None:
-            cache_dir = (Path(pywikibot.config.base_dir)
-                         / 'apicache' / 'wikiwho')
-        else:
-            cache_dir = Path(cache_dir)
-
-        # Calculate subdirectory as floor(page_id / 1000) * 1000
-        subdirectory = (page_id // 1000) * 1000
-
-        # Construct path: cache_dir/lang/subdirectory/page_id.p
-        pickle_path = cache_dir / lang / str(subdirectory) / f'{page_id}.p'
-
-        return pickle_path
+        pass

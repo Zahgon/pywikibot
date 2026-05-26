@@ -114,9 +114,7 @@ class BaseLink(ComparableMixin):
 
         :rtype: pywikibot.Site
         """
-        if not hasattr(self, '_site'):
-            self._site = pywikibot.site.APISite.fromDBName(self._sitekey)
-        return self._site
+        pass
 
     @property
     def namespace(self):
@@ -170,20 +168,7 @@ class BaseLink(ComparableMixin):
             link from the given site; otherwise, present as an internal
             link on the site.
         """
-        if onsite is None:
-            onsite = self.site
-        title = self.title
-        if self.namespace != Namespace.MAIN:
-            title = onsite.namespace(self.namespace) + ':' + title
-        if onsite == self.site:
-            return f'[[{title}]]'
-        if onsite.family == self.site.family:
-            return f'[[{self.site.code}:{title}]]'
-        if self.site.family.name == self.site.code:
-            # use this form for sites like commons, where the
-            # code is the same as the family name
-            return f'[[{self.site.code}:{title}]]'
-        return f'[[{self.site.sitename}:{title}]]'
+        pass
 
     def _cmpkey(self):
         """Key for comparison of BaseLink objects.
@@ -490,9 +475,7 @@ class Link(BaseLink):
 
         :rtype: pywikibot.Site
         """
-        if not hasattr(self, '_site'):
-            self.parse()
-        return self._site
+        pass
 
     @property
     def namespace(self):
@@ -521,9 +504,7 @@ class Link(BaseLink):
     @property
     def anchor(self) -> str:
         """Return the anchor of the link."""
-        if not hasattr(self, '_anchor'):
-            self.parse()
-        return self._anchor
+        pass
 
     def astext(self, onsite=None):
         """Return a text representation of the link.
@@ -532,13 +513,7 @@ class Link(BaseLink):
             link from the given site; otherwise, present as an internal
             link on the source site.
         """
-        if onsite is None:
-            onsite = self._source
-        text = super().astext(onsite)
-        if self.section:
-            text = f"{text.rstrip(']')}#{self.section}]]"
-
-        return text
+        pass
 
     def _cmpkey(self):
         """Key for comparison of Link objects.
@@ -711,7 +686,7 @@ class SiteLink(BaseLink):
 
         :rtype: [pywikibot.ItemPage]
         """
-        return list(self._badges)
+        pass
 
     @classmethod
     def fromJSON(  # noqa: N802
@@ -796,27 +771,5 @@ def html2unicode(text: str,
     ignore = {_ILLEGAL_HTML_ENTITIES_MAPPING.get(x, x)
               for x in ignore} | {129, 141, 157}
 
-    def handle_entity(match):
-        if textlib.isDisabled(match.string, match.start(), tags=exceptions):
-            # match.string stores original text so we do not need
-            # to pass it to handle_entity, ♥ Python
-            return match[0]
-
-        if match['decimal']:
-            unicode_codepoint = int(match['decimal'])
-        elif match['hex']:
-            unicode_codepoint = int(match['hex'], 16)
-        elif match['name']:
-            name = match['name']
-            unicode_codepoint = name2codepoint.get(name, False)
-
-        unicode_codepoint = _ILLEGAL_HTML_ENTITIES_MAPPING.get(
-            unicode_codepoint, unicode_codepoint)
-
-        if unicode_codepoint and unicode_codepoint not in ignore:
-            return chr(unicode_codepoint)
-
-        # Leave the entity unchanged
-        return match[0]
 
     return _ENTITY_SUB(handle_entity, text)

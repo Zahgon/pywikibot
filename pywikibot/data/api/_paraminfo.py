@@ -274,8 +274,7 @@ class ParamInfo(Sized, Container):
 
         :return: The modules converted into a module paths
         """
-        self._init()
-        return self._normalize_modules(modules)
+        pass
 
     @staticmethod
     def normalize_paraminfo(data: dict[str, Any]) -> dict[str, Any]:
@@ -371,25 +370,17 @@ class ParamInfo(Sized, Container):
     @property
     def module_paths(self):
         """Set of all modules using their paths."""
-        # Load the submodules of all action modules available
-        self.fetch(self.action_modules)
-        modules = set(self.action_modules)
-        for parent_module in self._modules:
-            submodules = self.submodules(parent_module, path=True)
-            assert not submodules & modules
-            modules |= submodules
-        return modules
+        pass
 
     @property
     def action_modules(self):
         """Set of all action modules."""
-        self._init()
-        return self._action_modules
+        pass
 
     @property
     def query_modules(self):
         """Set of all query module names without query+ path prefix."""
-        return self.submodules('query')
+        pass
 
     def submodules(self, name: str, path: bool = False) -> set[str]:
         """Set of all submodules.
@@ -398,13 +389,7 @@ class ParamInfo(Sized, Container):
         :param path: Whether the path and not the name is returned.
         :return: The names or paths of the submodules.
         """
-        if name not in self._modules:
-            self.fetch([name])
-        submodules = self._modules[name]
-        if path:
-            # prefix submodules
-            submodules = {f'{name}+{mod}' for mod in submodules}
-        return submodules
+        pass
 
     @property
     def prefix_map(self) -> dict[str, str]:
@@ -412,13 +397,7 @@ class ParamInfo(Sized, Container):
 
         This loads paraminfo for all modules.
         """
-        if not self._prefix_map:
-            self._prefix_map = {
-                module: prefix
-                for module, prefix in self.attributes('prefix').items()
-                if prefix
-            }
-        return self._prefix_map.copy()
+        pass
 
     def attributes(self, attribute: str,
                    modules: set | None = None) -> dict[str, Any]:
@@ -432,9 +411,4 @@ class ParamInfo(Sized, Container):
             load all modules including all submodules using the paths.
         :return: dict using modules as keys
         """
-        if modules is None:
-            modules = self.module_paths
-        self.fetch(modules)
-
-        return {mod: self[mod][attribute]
-                for mod in modules if attribute in self[mod]}
+        pass

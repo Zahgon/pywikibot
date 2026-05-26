@@ -578,15 +578,7 @@ def PageClassGenerator(generator: Iterable[pywikibot.page.Page]
     The page class type depends on the page namespace. Objects may be
     Category, FilePage, Userpage or Page.
     """
-    for page in generator:
-        if page.namespace() == page.site.namespaces.USER:
-            yield pywikibot.User(page)
-        elif page.namespace() == page.site.namespaces.FILE:
-            yield pywikibot.FilePage(page)
-        elif page.namespace() == page.site.namespaces.CATEGORY:
-            yield pywikibot.Category(page)
-        else:
-            yield page
+    pass
 
 
 def PageWithTalkPageGenerator(
@@ -640,25 +632,7 @@ def RepeatingGenerator(
         number of items in total. Otherwise, iterate forever
     :return: A generator yielding items in ascending order by time
     """
-    kwargs.pop('reverse', None)  # always get newest item first
-    kwargs.pop('start', None)  # don't set start time
-    kwargs.pop('end', None)  # don't set stop time
-
-    seen: set[Any] = set()
-    while total is None or len(seen) < total:
-        def filtered_generator() -> Generator[pywikibot.page.BasePage]:
-            for item in generator(total=None if seen else 1, **kwargs):
-                key = key_func(item)
-                if key not in seen:
-                    seen.add(key)
-                    yield item
-                    if len(seen) == total:
-                        return
-                else:
-                    break
-            pywikibot.sleep(sleep_duration)
-
-        yield from reversed(list(filtered_generator()))
+    pass
 
 
 def PreloadingGenerator(generator: Iterable[pywikibot.page.Page],
@@ -704,15 +678,7 @@ def DequePreloadingGenerator(
     :param quiet: If False (default), show the "Retrieving pages"
         message
     """
-    assert isinstance(generator, DequeGenerator), \
-        'generator must be a DequeGenerator object'
-
-    while True:
-        page_count = min(len(generator), groupsize)
-        if not page_count:
-            return
-
-        yield from PreloadingGenerator(generator, page_count, quiet)
+    pass
 
 
 def PreloadingEntityGenerator(
@@ -726,18 +692,4 @@ def PreloadingEntityGenerator(
     :param generator: Pages to iterate over
     :param groupsize: How many pages to preload at once
     """
-    sites: dict[pywikibot.site.BaseSite,
-                list[pywikibot.page.WikibaseEntity]] = {}
-    for page in generator:
-        site = page.site
-        sites.setdefault(site, []).append(page)
-        if len(sites[site]) >= groupsize:
-            # if this site is at the groupsize, process it
-            group = sites.pop(site)
-            repo = site.data_repository()
-            yield from repo.preload_entities(group, groupsize)
-
-    for site, pages in sites.items():
-        # process any leftover sites that never reached the groupsize
-        repo = site.data_repository()
-        yield from repo.preload_entities(pages, groupsize)
+    pass

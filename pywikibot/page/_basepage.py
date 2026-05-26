@@ -136,7 +136,7 @@ class BasePage(ComparableMixin):
 
         :rtype: pywikibot.Site
         """
-        return self._link.site
+        pass
 
     def version(self):
         """Return MediaWiki version number of the page site.
@@ -170,9 +170,7 @@ class BasePage(ComparableMixin):
         If it cannot be reliably determined via the API, None is
         returned.
         """
-        if not hasattr(self, '_contentmodel'):
-            self.site.loadpageinfo(self)
-        return self._contentmodel
+        pass
 
     @property
     @cached
@@ -182,7 +180,7 @@ class BasePage(ComparableMixin):
         Check if the namespace allows subpages. Not allowed subpages
         means depth is always 0.
         """
-        return self.title().count('/') if self.namespace().subpages else 0
+        pass
 
     @property
     def pageid(self) -> int:
@@ -342,7 +340,7 @@ class BasePage(ComparableMixin):
 
     def isAutoTitle(self):
         """Return True if title of this Page is in the autoFormat dict."""
-        return self.autoFormat()[0] is not None
+        pass
 
     def get(self, force: bool = False, get_redirect: bool = False) -> str:
         """Return the wiki-text of the page.
@@ -491,9 +489,7 @@ class BasePage(ComparableMixin):
     @property
     def latest_revision_id(self):
         """Return the current revision id for this page."""
-        if not hasattr(self, '_revid'):
-            self.revisions()
-        return self._revid
+        pass
 
     @latest_revision_id.deleter
     def latest_revision_id(self) -> None:
@@ -509,19 +505,12 @@ class BasePage(ComparableMixin):
         - isDisambig and isCategoryRedirect status
         - langlinks, templates and deleted revisions
         """
-        # When forcing, we retry the page no matter what:
-        # * Old exceptions do not apply any more
-        # * Deleting _revid to force reload
-        # * Deleting _redirtarget, that info is now obsolete.
-        for attr in ['_redirtarget', '_getexception', '_revid']:
-            if hasattr(self, attr):
-                delattr(self, attr)
+        pass
 
     @latest_revision_id.setter
     def latest_revision_id(self, value) -> None:
         """Set the latest revision for this Page."""
-        del self.latest_revision_id
-        self._revid = value
+        pass
 
     @property
     def latest_revision(self) -> pywikibot.page.Revision:
@@ -538,13 +527,7 @@ class BasePage(ComparableMixin):
 
         .. seealso:: :attr:`oldest_revision`
         """
-        rev = self._latest_cached_revision()
-        if rev is not None:
-            return rev
-
-        with suppress(StopIteration):
-            return next(self.revisions(content=True, total=1))
-        raise InvalidPageError(self)
+        pass
 
     @property
     def text(self) -> str:
@@ -574,14 +557,7 @@ class BasePage(ComparableMixin):
 
         :return: Text of the page
         """
-        if hasattr(self, '_text') and self._text is not None:
-            return self._text
-
-        try:
-            return self.get(get_redirect=True)
-        except NoPageError:
-            # TODO: what other exceptions might be returned?
-            return ''
+        pass
 
     @text.setter
     def text(self, value: str | None) -> None:
@@ -589,26 +565,12 @@ class BasePage(ComparableMixin):
 
         :param value: New value or None
         """
-        try:
-            self.botMayEdit()  # T262136, T267770
-        except Exception as e:
-            # dry tests aren't able to make an API call
-            # but are rejected by an Exception; ignore it then.
-            if not str(e).startswith('DryRequest rejecting request:'):
-                raise
-
-        del self.text
-        self._text = None if value is None else str(value)
+        pass
 
     @text.deleter
     def text(self) -> None:
         """Delete the current (edited) wikitext."""
-        if hasattr(self, '_text'):
-            del self._text
-        if hasattr(self, '_expanded_text'):
-            del self._expanded_text
-        if hasattr(self, '_raw_extracted_templates'):
-            del self._raw_extracted_templates
+        pass
 
     def preloadText(self) -> str:
         """The text returned by EditFormPreloadText.
@@ -618,8 +580,7 @@ class BasePage(ComparableMixin):
         Application: on Wikisource wikis, text can be preloaded even if
         a page does not exist, if an Index page is present.
         """
-        self.site.loadpageinfo(self, preload=True)
-        return self._preloadedtext
+        pass
 
     def get_parsed_page(self, force: bool = False) -> str:
         """Retrieve parsed text (via action=parse) and cache it.
@@ -634,9 +595,7 @@ class BasePage(ComparableMixin):
 
         :param force: Force updating from the live site
         """
-        if not hasattr(self, '_parsed_text') or force:
-            self._parsed_text = self.site.get_parsed_page(self)
-        return self._parsed_text
+        pass
 
     def extract(self, variant: str = 'plain', *,
                 lines: int | None = None,
@@ -717,7 +676,7 @@ class BasePage(ComparableMixin):
 
         :param force: Force updating from the live site
         """
-        return self.properties(force=force).get('defaultsort')
+        pass
 
     def expand_text(
         self,
@@ -750,7 +709,7 @@ class BasePage(ComparableMixin):
            Use :attr:`latest_revision.user<latest_revision>`
            instead.
         """
-        return self.latest_revision.user  # type: ignore[attr-defined]
+        pass
 
     @deprecated('latest_revision.anon', since='9.3.0')
     def isIpEdit(self) -> bool:
@@ -760,7 +719,7 @@ class BasePage(ComparableMixin):
            Use :attr:`latest_revision.anon<latest_revision>`
            instead.
         """
-        return self.latest_revision.anon  # type: ignore[attr-defined]
+        pass
 
     @cached
     def lastNonBotUser(self) -> str | None:
@@ -774,11 +733,7 @@ class BasePage(ComparableMixin):
         'bot', i.e. which is not returned by Site.botusers(), it will be
         returned as a non-bot edit.
         """
-        for entry in self.revisions():
-            if entry.user and (not self.site.isBot(entry.user)):
-                return entry.user
-
-        return None
+        pass
 
     def exists(self) -> bool:
         """Return True if page exists on the wiki, even if it's a redirect.
@@ -805,7 +760,7 @@ class BasePage(ComparableMixin):
 
         .. seealso:: :attr:`latest_revision`
         """
-        return next(self.revisions(reverse=True, total=1))
+        pass
 
     def isRedirectPage(self):
         """Return True if this is a redirect, False if not or not existing."""
@@ -1047,13 +1002,7 @@ class BasePage(ComparableMixin):
         :param content: If True, retrieve the content of the current
             version of each embedding page (default False)
         """
-        return self.site.page_embeddedin(
-            self,
-            filter_redirects=filter_redirects,
-            namespaces=namespaces,
-            total=total,
-            content=content
-        )
+        pass
 
     def redirects(
         self,
@@ -1481,7 +1430,7 @@ class BasePage(ComparableMixin):
         :raises KeyError: 'watch' isn't in API response
         :raises TypeError: Unexpected keyword argument
         """
-        return self.site.watch(self, unwatch=unwatch, expiry=expiry)
+        pass
 
     def clear_cache(self) -> None:
         """Clear the cached attributes of the page."""
@@ -1502,8 +1451,7 @@ class BasePage(ComparableMixin):
             and update the links tables for any page that uses this page
             as a template.
         """
-        self.clear_cache()
-        return self.site.purgepages([self], **kwargs)
+        pass
 
     @deprecated_args(botflag='bot')  # since 9.3.0
     def touch(self, callback=None, bot: bool = False, **kwargs) -> None:
@@ -1816,11 +1764,7 @@ class BasePage(ComparableMixin):
         :return: A FilePage object
         :rtype: pywikibot.page.FilePage
         """
-        if not hasattr(self, '_pageimage'):
-            self._pageimage = None
-            self.site.loadpageimage(self)
-
-        return self._pageimage
+        pass
 
     def getRedirectTarget(self, *,
                           ignore_section: bool = True) -> pywikibot.Page:
@@ -1857,13 +1801,7 @@ class BasePage(ComparableMixin):
 
         :raises NoMoveTargetError: Page was not moved
         """
-        gen = iter(self.site.logevents(logtype='move', page=self, total=1))
-        try:
-            lastmove = next(gen)
-        except StopIteration:
-            raise NoMoveTargetError(self)
-
-        return lastmove.target_page
+        pass
 
     def revisions(self,
                   reverse: bool = False,
@@ -1961,7 +1899,7 @@ class BasePage(ComparableMixin):
             all revisions will be merged)
         :param reason: Optional reason for the history merge
         """
-        self.site.merge_history(self, dest, timestamp, reason)
+        pass
 
     def move(self,
              newtitle: str,
@@ -2126,10 +2064,7 @@ class BasePage(ComparableMixin):
 
         .. version-added:: 4.2
         """
-        if not hasattr(self, '_has_deleted_revisions'):
-            gen = self.site.deletedrevs(self, total=1, prop=['ids'])
-            self._has_deleted_revisions = bool(list(gen))
-        return self._has_deleted_revisions
+        pass
 
     def loadDeletedRevisions(self, total: int | None = None, **kwargs):
         """Retrieve deleted revisions for this Page.
@@ -2141,12 +2076,7 @@ class BasePage(ComparableMixin):
             revisions later on).
         :rtype: generator
         """
-        if not hasattr(self, '_deletedRevs'):
-            self._deletedRevs = {}
-        for item in self.site.deletedrevs(self, total=total, **kwargs):
-            for rev in item.get('revisions', []):
-                self._deletedRevs[rev['timestamp']] = rev
-                yield rev['timestamp']
+        pass
 
     def getDeletedRevision(
         self,
@@ -2190,17 +2120,7 @@ class BasePage(ComparableMixin):
         :return: A dictionary information about the deleted revision. If
             timestamp is not found, an empty list is given.
         """
-        if hasattr(self, '_deletedRevs') \
-           and timestamp in self._deletedRevs \
-           and (not content or 'content' in self._deletedRevs[timestamp]):
-            return self._deletedRevs[timestamp]
-
-        for item in self.site.deletedrevs(self, start=timestamp,
-                                          content=content, total=1, **kwargs):
-            # should only be one item with one revision
-            if item['title'] == self.title() and 'revisions' in item:
-                return item['revisions'][0]
-        return []
+        pass
 
     def markDeletedRevision(self, timestamp, undelete: bool = True) -> None:
         """Mark the revision identified by timestamp for undeletion.
@@ -2211,12 +2131,7 @@ class BasePage(ComparableMixin):
 
         :param undelete: If False, mark the revision to remain deleted.
         """
-        if not hasattr(self, '_deletedRevs'):
-            self.loadDeletedRevisions()
-        if timestamp not in self._deletedRevs:
-            raise ValueError(
-                f'Timestamp {timestamp} is not a deleted revision')
-        self._deletedRevs[timestamp]['marked'] = undelete
+        pass
 
     def undelete(self, reason: str | None = None) -> None:
         """Undelete revisions based on the markers set by previous calls.
@@ -2419,16 +2334,4 @@ class BasePage(ComparableMixin):
         :return: The reduced link.
         :raises APIError: urlshortener-ratelimit exceeded
         """
-        wiki = self.site
-        if self.site.family.shared_urlshortner_wiki:
-            wiki = pywikibot.Site(*self.site.family.shared_urlshortner_wiki)
-
-        url = self.permalink() if permalink else self.full_url()
-
-        link = wiki.create_short_link(url)
-        if re.match(PROTOCOL_REGEX, link):
-            if not with_protocol:
-                return re.sub(PROTOCOL_REGEX, '', link)
-        elif with_protocol:
-            return f'{wiki.protocol()}://{link}'
-        return link
+        pass

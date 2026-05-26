@@ -133,12 +133,7 @@ class Siteinfo(Container):
 
         def warn_handler(mod, message) -> bool:
             """Return True if the warning is handled."""
-            matched = Siteinfo.WARNING_REGEX.fullmatch(message)
-            if mod == 'siteinfo' and matched:
-                invalid_properties.extend(
-                    prop.strip() for prop in matched[1].split(','))
-                return True
-            return False
+            pass
 
         # Convert to list for consistent iteration
         props = [prop] if isinstance(prop, str) else list(prop)
@@ -335,12 +330,7 @@ class Siteinfo(Container):
 
         .. version-added:: 7.1
         """
-        try:
-            self._get_cached(key)
-        except KeyError:
-            return False
-
-        return True
+        pass
 
     def __contains__(self, key: object) -> bool:
         """Check whether the given key is present in the Siteinfo container.
@@ -369,8 +359,7 @@ class Siteinfo(Container):
 
         'None' if not cached.
         """
-        time = self.get_requested_time(key)
-        return None if time is None else bool(time)
+        pass
 
     def get_requested_time(self, key: str):
         """Return when 'key' was successfully requested from the server.
@@ -383,7 +372,4 @@ class Siteinfo(Container):
         :rtype: None (never), False (default),
             :py:obj:`datetime.datetime` (cached)
         """
-        with suppress(KeyError):
-            return self._get_cached(key)[1]
-
-        return None
+        pass

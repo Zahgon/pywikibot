@@ -107,7 +107,7 @@ class Throttle:
 
         .. version-deprecated:: 10.3.0
         """
-        return 1.0
+        pass
 
     @next_multiplicity.setter
     @deprecated(since='10.3.0')
@@ -233,7 +233,7 @@ class Throttle:
         .. version-deprecated:: 10.3.0
            Use :meth:`set_delays` instead.
         """
-        self.set_delays(delay=delay, writedelay=writedelay, absolute=absolute)
+        pass
 
     def set_delays(
         self, *,
@@ -267,7 +267,7 @@ class Throttle:
         .. version-deprecated:: 10.3.0
            Use :meth:`get_delay` instead.
         """
-        return self.get_delay(write=write)
+        pass
 
     def get_delay(self, *, write: bool = False) -> float:
         """Return the current delay, adjusted for active processes.
@@ -309,18 +309,7 @@ class Throttle:
 
         The result is for a query that would be made right now.
         """
-        # Take the previous requestsize in account calculating the desired
-        # delay this time
-        thisdelay = self.get_delay(write=write)
-        now = time.time()
-
-        if write:
-            last = self.last_write
-        else:
-            last = max(self.last_read, self.last_write)
-
-        ago = now - last
-        return max(0.0, thisdelay - ago)
+        pass
 
     def drop(self) -> None:
         """Remove me from the list of running bot processes."""

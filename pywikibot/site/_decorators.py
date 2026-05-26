@@ -28,17 +28,6 @@ def must_be(group: str | None = None):
         group.
     """
     def decorator(fn):
-        def callee(self, *args, **kwargs):
-            grp = kwargs.pop('as_group', group)
-            if self.obsolete:
-                if not self.has_group('steward'):
-                    raise UserRightsError(CLOSED_WIKI_MSG.format(site=self))
-
-            elif not self.has_group(grp):
-                raise UserRightsError(f'User "{self.user()}" is not part of '
-                                      f'the required user group "{grp}"')
-
-            return fn(self, *args, **kwargs)
 
         manage_wrapping(callee, fn)
         return callee
@@ -54,12 +43,6 @@ def need_extension(extension: str):
         the decorated function is called.
     """
     def decorator(fn):
-        def callee(self, *args, **kwargs):
-            if not self.has_extension(extension):
-                raise UnknownExtensionError(
-                    f'Method "{fn.__name__}" is not implemented without the '
-                    f'extension {extension}')
-            return fn(self, *args, **kwargs)
 
         manage_wrapping(callee, fn)
         return callee
@@ -75,22 +58,6 @@ def need_right(right: str | None = None):
     :raises UserRightsError: User has insufficient rights.
     """
     def decorator(fn):
-        def callee(self, *args, **kwargs):
-            if self.obsolete:
-                if not self.has_group('steward'):
-                    raise UserRightsError(CLOSED_WIKI_MSG.format(site=self))
-
-            elif right is not None and not self.has_right(right):
-                if os.environ.get('PYWIKIBOT_TEST_RUNNING', '0') == '1':
-                    rights = ' but:\n' + fill(
-                        str(sorted(self.userinfo['rights'])),
-                        width=76, break_on_hyphens=False)
-                else:
-                    rights = '.'
-                raise UserRightsError(
-                    f'User "{self.user()}" does not have required user right '
-                    f'"{right}" on site {self}{rights}')
-            return fn(self, *args, **kwargs)
 
         manage_wrapping(callee, fn)
         return callee
@@ -106,12 +73,6 @@ def need_version(version: str):
         the decorated function is called.
     """
     def decorator(fn):
-        def callee(self, *args, **kwargs):
-            if MediaWikiVersion(self.version()) < MediaWikiVersion(version):
-                raise NotImplementedError(
-                    f'Method or function "{fn.__name__}"\n'
-                    f"isn't implemented in MediaWiki version < {version}")
-            return fn(self, *args, **kwargs)
 
         manage_wrapping(callee, fn)
 
